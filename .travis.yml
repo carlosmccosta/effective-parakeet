@@ -1,0 +1,16 @@
+language: minimal
+
+services:
+  - docker
+  
+before_install:
+  - docker pull ubuntu:18.04
+
+script:
+  - docker run
+      --volume $PWD:/host
+      --workdir /host/continuous-integration
+      ubuntu:18.04
+      bash -c "./setup.sh &&
+               ./lint.sh &&
+               ./test.sh"
