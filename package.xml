@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>zivid_ros_wrapper</name>
+  <version>0.1.0</version>
+  <description>The zivid_ros_wrapper package</description>
+
+  <maintainer email="ulrich.isachsen@zivid.com">ulrich</maintainer>
+
+
+  <license>BSD3</license>
+
+
+  <url type="website>">http://zivid.com</url>
+
+
+  <author email="ulrich.isachsen@zivid.com">Ulrich Isachsen</author>
+
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>tf2_ros</build_depend>
+  <build_depend>dynamic_reconfigure</build_depend>
+  <build_depend>message_generation</build_depend>
+  <build_depend>rostest</build_depend>
+  <build_export_depend>roscpp</build_export_depend>
+  <build_export_depend>sensor_msgs</build_export_depend>
+  <build_export_depend>std_msgs</build_export_depend>
+  <build_export_depend>tf2_ros</build_export_depend>
+  <build_export_depend>dynamic_reconfigure</build_export_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>dynamic_reconfigure</exec_depend>
+  <exec_depend>message_runtime</exec_depend>
+  <test_depend>rosunit</test_depend>
+
+  <export>
+
+  </export>
+</package>

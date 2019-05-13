@@ -1,0 +1,23 @@
+option(LINTING "Enable code linting, this may reduce compile time by a factor of ~4" ON)
+
+if(LINTING)
+    if(NOT CLANG_TIDY)
+      set(CLANG_TIDY_DOC_STRING "Path to the Clang Tidy tool")
+      if(DEFINED ENV{CXX_CLANG_TIDY})
+          set(CLANG_TIDY "$ENV{CXX_CLANG_TIDY}" CACHE FILEPATH ${CLANG_TIDY_DOC_STRING})
+      else()
+          find_program(CLANG_TIDY NAMES clang-tidy DOC ${CLANG_TIDY_DOC_STRING})
+      endif()
+      if(NOT CLANG_TIDY)
+        message(FATAL_ERROR "clang-tidy not in path, use CXX_CLANG_TIDY to specify location")
+      else()
+        message(STATUS "Using clang-tidy: ${CLANG_TIDY}")
+      endif()
+    endif()
+
+    if(NOT "${CLANG_TIDY_FLAGS}" STREQUAL "")
+        set(CLANG_TIDY_FLAGS ";${CLANG_TIDY_FLAGS}")
+    endif()
+
+    set(CMAKE_CXX_CLANG_TIDY "${CLANG_TIDY}${CLANG_TIDY_FLAGS}")
+endif()

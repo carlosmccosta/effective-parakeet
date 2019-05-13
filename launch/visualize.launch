@@ -1,0 +1,4 @@
+<launch>
+    <node name="zivid_ros_wrapper_node" pkg="zivid_ros_wrapper" type="zivid_ros_wrapper_node"/>
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find zivid_ros_wrapper)/rviz/camera_view.rviz"/>
+</launch>
