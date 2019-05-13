@@ -2,15 +2,18 @@ language: minimal
 
 services:
   - docker
+
+env:
+  - OS=ros:melodic-ros-base-bionic
   
 before_install:
-  - docker pull ubuntu:18.04
+  - docker pull $OS
 
 script:
   - docker run
       --volume $PWD:/host
       --workdir /host/continuous-integration
-      ubuntu:18.04
+      $OS
       bash -c "./setup.sh &&
-               ./lint.sh &&
                ./test.sh"
+
