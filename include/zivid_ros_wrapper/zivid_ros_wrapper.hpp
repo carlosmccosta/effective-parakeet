@@ -11,7 +11,9 @@
 #include <zivid_ros_wrapper/HDR.h>
 #include <zivid_ros_wrapper/ZividInfo.h>
 
-#include <Zivid/Zivid.h>
+#include <Zivid/Application.h>
+#include <Zivid/Camera.h>
+#include <Zivid/Settings.h>
 
 namespace zivid_ros_wrapper
 {
@@ -38,7 +40,7 @@ private:
   void settingsReconfigureCallback(zivid_ros_wrapper::ZividSettingsConfig& config, uint32_t level,
                                    const std::string& name);
   void newSettings(const std::string& name);
-  void removeSettings(const std::string& name);
+  //void removeSettings(const std::string& name);
   void cameraReconfigureCallback(zivid_ros_wrapper::ZividCameraConfig& config, uint32_t level);
   void configureCameraMode(int camera_mode);
   bool captureServiceHandler(zivid_ros_wrapper::Capture::Request& req, zivid_ros_wrapper::Capture::Response& res);
@@ -47,23 +49,22 @@ private:
 
   Zivid::Application zivid_;
   Zivid::Camera camera_;
-  boost::function<void(const Zivid::Frame&)> local_function_link_m;
   int camera_mode_;
-  ros::Publisher pointcloud_pub_m;
-  ros::ServiceServer capture_service_m;
-  ros::ServiceServer hdr_service_m;
-  ros::ServiceServer new_settings_service_m;
-  ros::ServiceServer copy_settings_service_m;
-  ros::ServiceServer remove_settings_service_m;
-  std::vector<ros::ServiceServer> generated_servers_m;
-  ros::ServiceServer zivid_info_service_m;
+  ros::Publisher pointcloud_pub_;
+  ros::ServiceServer capture_service_;
+  ros::ServiceServer hdr_service_;
+  ros::ServiceServer new_settings_service_;
+  ros::ServiceServer copy_settings_service_;
+  ros::ServiceServer remove_settings_service_;
+  std::vector<ros::ServiceServer> generated_servers_;
+  ros::ServiceServer zivid_info_service_;
 
-  ros::NodeHandle camera_reconfigure_handler_m;
-  dynamic_reconfigure::Server<zivid_ros_wrapper::ZividCameraConfig> camera_reconfigure_server_m;
+  ros::NodeHandle camera_reconfigure_handler_;
+  dynamic_reconfigure::Server<zivid_ros_wrapper::ZividCameraConfig> camera_reconfigure_server_;
 
-  std::vector<DynamicReconfigureSettings> dynamic_reconfigure_settings_list_m;
+  std::vector<DynamicReconfigureSettings> dynamic_reconfigure_settings_list_;
 
-  int frame_id_m;
+  int frame_id_;
 };
 }  // namespace zivid_ros_wrapper
 

@@ -5,6 +5,7 @@
 #include <dynamic_reconfigure/server.h>
 #include "sensor_msgs/PointCloud2.h"
 #include <iostream>
+
 void reconfigure_handler(zivid_ros_wrapper::TripleHDRConfig& config, uint32_t /*level*/,
                          zivid_ros_wrapper::HDR* hdr_srv)
 {

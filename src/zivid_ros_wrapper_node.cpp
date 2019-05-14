@@ -2,9 +2,9 @@
 
 #include "zivid_ros_wrapper/zivid_ros_wrapper.hpp"
 
-#include <tf2_ros/static_transform_broadcaster.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <tf2/LinearMath/Quaternion.h>
+#include <tf2_ros/static_transform_broadcaster.h>
 
 int main(int argc, char** argv)
 {
@@ -21,6 +21,5 @@ int main(int argc, char** argv)
     return EXIT_FAILURE;
   }
 
-  ROS_INFO("THIS POINT REACHED");
   return 0;
 }
