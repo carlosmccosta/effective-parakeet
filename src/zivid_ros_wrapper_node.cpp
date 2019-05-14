@@ -12,13 +12,11 @@ int main(int argc, char** argv)
 
     try
     {
-        //FIXME, if camera connection fails, there is no warning suggesting a fix.
         zivid_ros_wrapper::ZividRosWrapper wrapper;
-
         ros::spin();
     }catch(const std::exception& e)
     {
-        ROS_ERROR("Something went wrong in the camera initialization");
+        ROS_ERROR("Error during initialization: %s", e.what());
         return EXIT_FAILURE;
     }
 

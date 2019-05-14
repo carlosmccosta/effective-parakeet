@@ -76,7 +76,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.0007999999797903001
       Style: Flat Squares
-      Topic: /zivid_ros_wrapper_node/pointcloud
+      Topic: /zivid_ros_wrapper/pointcloud
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true

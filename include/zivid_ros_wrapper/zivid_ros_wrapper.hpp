@@ -1,5 +1,5 @@
-#ifndef ZIVID_ROS_WRAPPER_NODE_M
-#define ZIVID_ROS_WRAPPER_NODE_M
+#ifndef ZIVID_ROS_WRAPPER_H
+#define ZIVID_ROS_WRAPPER_H
 
 #include "ros/ros.h"
 #include "sensor_msgs/PointCloud2.h"
@@ -18,11 +18,10 @@ namespace zivid_ros_wrapper
     class ZividRosWrapper
     {
     public:
-        ZividRosWrapper(void);
-        ~ZividRosWrapper(void);
-
-        void init(void);
-        void disconnect(void);
+        ZividRosWrapper();
+        ~ZividRosWrapper();
+        void init();
+        void disconnect();
 
     private:
         struct DynamicReconfigureSettings
@@ -45,10 +44,10 @@ namespace zivid_ros_wrapper
         bool hdrCaptureServiceHandler(zivid_ros_wrapper::HDR::Request& req, zivid_ros_wrapper::HDR::Response& res);
         bool zividInfoServiceHandler(zivid_ros_wrapper::ZividInfo::Request& req, zivid_ros_wrapper::ZividInfo::Response& res);
 
-        Zivid::Application zivid_m;
-        Zivid::Camera camera_m;
+        Zivid::Application zivid_;
+        Zivid::Camera camera_;
         boost::function<void(const Zivid::Frame&)> local_function_link_m;
-        int camera_mode_m;
+        int camera_mode_;
         ros::Publisher pointcloud_pub_m;
         ros::ServiceServer capture_service_m;
         ros::ServiceServer hdr_service_m;
@@ -65,6 +64,6 @@ namespace zivid_ros_wrapper
 
         int frame_id_m;
     };
-} //namespace zivid_ros_wrapper
+}
 
-#endif //ZIVID_ROS_WRAPPER_NODE_M
+#endif

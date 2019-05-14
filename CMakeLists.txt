@@ -27,7 +27,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
 )
 
-find_package(ZividCore)
+find_package(Zivid COMPONENTS Core REQUIRED)
 find_package(OpenMP)
 if(OpenMP_FOUND)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
