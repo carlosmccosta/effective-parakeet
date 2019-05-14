@@ -4,13 +4,60 @@
 #include <dynamic_reconfigure/config_tools.h>
 
 #include "zivid_ros_wrapper_gen.hpp"
-#include <zivid_services_generated.h>
+#include <zivid_ros_wrapper/Temperature.h>
+#include <zivid_ros_wrapper/Available.h>
+#include <zivid_ros_wrapper/Connected.h>
+#include <zivid_ros_wrapper/Live.h>
+
+
+
+#include <Zivid/HDR.h>
 
 #include <condition_variable>
 #include <csignal>
-
 #include <iostream>
 #include <sstream>
+
+namespace {
+
+    template<typename T>
+    bool srvTemperatureCallback(zivid_ros_wrapper::Temperature::Request&,
+                            zivid_ros_wrapper::Temperature::Response& res,
+                            const Zivid::Camera& camera)
+    {
+        const auto & cam = camera.state().get<T>();
+        res.value = cam.value();
+        //StateSrvValueConversion<T::ValueType, decltype(res.value)>::stateValueToSrvValue(
+        //    camera.state().isAvailable().value());
+        return true;
+    }
+
+    bool srvAvailableCallback(zivid_ros_wrapper::Available::Request&, zivid_ros_wrapper::Available::Response& res,
+                            const Zivid::Camera& camera)
+    {
+    res.value =
+        StateSrvValueConversion<Zivid::CameraState::Available::ValueType, decltype(res.value)>::stateValueToSrvValue(
+            camera.state().isAvailable().value());
+    return true;
+    }
+
+    bool srvConnectedCallback(zivid_ros_wrapper::Connected::Request&, zivid_ros_wrapper::Connected::Response& res,
+                            const Zivid::Camera& camera)
+    {
+    res.value =
+        StateSrvValueConversion<Zivid::CameraState::Connected::ValueType, decltype(res.value)>::stateValueToSrvValue(
+            camera.state().isConnected().value());
+    return true;
+    }
+
+    bool srvLiveCallback(zivid_ros_wrapper::Live::Request&, zivid_ros_wrapper::Live::Response& res,
+                        const Zivid::Camera& camera)
+    {
+    res.value = StateSrvValueConversion<Zivid::CameraState::Live::ValueType, decltype(res.value)>::stateValueToSrvValue(
+        camera.state().live().value());
+    return true;
+    }
+}
 
 zivid_ros_wrapper::ZividRosWrapper::ZividRosWrapper()
   : camera_reconfigure_handler_("~/camera_config")
@@ -104,7 +151,40 @@ void zivid_ros_wrapper::ZividRosWrapper::init()
       boost::bind(&zivid_ros_wrapper::ZividRosWrapper::hdrCaptureServiceHandler, this, _1, _2);
   hdr_service_ = priv.advertiseService("hdr", hdr_callback_func);
 
-  setupStatusServers(priv, camera_, generated_servers_);
+
+
+
+  ROS_INFO("Registering Available service at %s", "available");
+  boost::function<bool(zivid_ros_wrapper::Available::Request&, zivid_ros_wrapper::Available::Response&)>
+      callback_srvAvailableCallback = boost::bind(&srvAvailableCallback, _1, _2, camera_);
+  generated_servers_.push_back(priv.advertiseService("available", callback_srvAvailableCallback));
+
+  ROS_INFO("Registering Connected service at %s", "connected");
+  boost::function<bool(zivid_ros_wrapper::Connected::Request&, zivid_ros_wrapper::Connected::Response&)>
+      callback_srvConnectedCallback = boost::bind(&srvConnectedCallback, _1, _2, camera_);
+  generated_servers_.push_back(priv.advertiseService("connected", callback_srvConnectedCallback));
+
+  ROS_INFO("Registering Live service at %s", "live");
+  boost::function<bool(zivid_ros_wrapper::Live::Request&, zivid_ros_wrapper::Live::Response&)>
+      callback_srvLiveCallback = boost::bind(&srvLiveCallback, _1, _2, camera_);
+  generated_servers_.push_back(priv.advertiseService("live", callback_srvLiveCallback));
+
+  auto temperatureNode = camera_.state().temperature();
+  temperatureNode.forEach([this, &priv](auto & n)
+  {
+    ROS_INFO("STIAN Adding node %s", n.path);
+
+    using SettingType = std::remove_reference_t<decltype(n)>;
+
+    boost::function<bool(zivid_ros_wrapper::Temperature::Request&, zivid_ros_wrapper::Temperature::Response&)>
+        callback_temp = [this](zivid_ros_wrapper::Temperature::Request& req, zivid_ros_wrapper::Temperature::Response& res)
+        {
+            return srvTemperatureCallback<SettingType>(req, res, camera_);
+        };
+
+    generated_servers_.push_back(priv.advertiseService(n.path, callback_temp));
+  });
+
 
   ROS_INFO("Registering zivid info service at %s", "zivid_info");
   boost::function<bool(zivid_ros_wrapper::ZividInfo::Request&, zivid_ros_wrapper::ZividInfo::Response&)>

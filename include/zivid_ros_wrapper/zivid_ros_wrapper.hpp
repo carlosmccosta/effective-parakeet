@@ -53,9 +53,9 @@ private:
   ros::Publisher pointcloud_pub_;
   ros::ServiceServer capture_service_;
   ros::ServiceServer hdr_service_;
-  ros::ServiceServer new_settings_service_;
-  ros::ServiceServer copy_settings_service_;
-  ros::ServiceServer remove_settings_service_;
+  //ros::ServiceServer new_settings_service_;
+  //ros::ServiceServer copy_settings_service_;
+  //ros::ServiceServer remove_settings_service_;
   std::vector<ros::ServiceServer> generated_servers_;
   ros::ServiceServer zivid_info_service_;
 

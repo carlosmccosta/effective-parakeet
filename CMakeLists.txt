@@ -99,11 +99,7 @@ add_service_files(
     Available.srv
     Connected.srv
     Live.srv
-    TemperatureDMD.srv
-    TemperatureGeneral.srv
-    TemperatureLED.srv
-    TemperatureLens.srv
-    TemperaturePCB.srv
+    Temperature.srv
 )
 
 add_custom_target(
