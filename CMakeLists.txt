@@ -76,11 +76,9 @@ target_link_libraries(${PROJECT_NAME}_gen ZividCore)
 # )
 
 generate_dynamic_reconfigure_options(
-    ../../build/zivid_ros_wrapper/ZividSettings.cfg
     cfg/ZividCamera.cfg
-    cfg/TripleHDR.cfg
+    ../../build/zivid_ros_wrapper/ZividSettings.cfg
 )
-
 
 ## Generate services in the 'srv' folder
 add_service_files(
@@ -90,8 +88,8 @@ add_service_files(
   Capture.srv
   HDR.srv
   CameraInfo.srv
-BooleanState.srv
-FloatState.srv
+  BooleanState.srv
+  FloatState.srv
 )
 
 add_custom_target(
@@ -157,8 +155,6 @@ add_library(${PROJECT_NAME}
 
 
 add_executable(${PROJECT_NAME}_node src/zivid_ros_wrapper_node.cpp)
-add_executable(${PROJECT_NAME}_service_republisher_node src/zivid_service_republisher.cpp)
-add_executable(${PROJECT_NAME}_hdr_republisher_node src/zivid_hdr_republisher.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -170,7 +166,6 @@ add_executable(${PROJECT_NAME}_hdr_republisher_node src/zivid_hdr_republisher.cp
 ## same as for the library above
 add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_gencfg ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
 add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME} )
-add_dependencies(${PROJECT_NAME}_hdr_republisher_node ${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}
@@ -179,12 +174,6 @@ target_link_libraries(${PROJECT_NAME}
 )
 target_link_libraries(${PROJECT_NAME}_node
     ${PROJECT_NAME}
-    ${catkin_LIBRARIES}
-)
-target_link_libraries(${PROJECT_NAME}_service_republisher_node
-    ${catkin_LIBRARIES}
-)
-target_link_libraries(${PROJECT_NAME}_hdr_republisher_node
     ${catkin_LIBRARIES}
 )
 
@@ -226,8 +215,6 @@ target_link_libraries(${PROJECT_NAME}_hdr_republisher_node
 #############
 ## Testing ##
 #############
-
-
 
 ## Add gtest based cpp test target and link libraries
 if(CATKIN_ENABLE_TESTING)
