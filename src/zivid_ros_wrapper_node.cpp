@@ -17,6 +17,7 @@ int main(int argc, char** argv)
   }
   catch (const std::exception& e)
   {
+    // TODO why are not exceptions in wrapper ctor caught?
     ROS_ERROR("Error during initialization: %s", e.what());
     return EXIT_FAILURE;
   }

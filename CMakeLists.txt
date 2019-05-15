@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(zivid_ros_wrapper LANGUAGES CXX)
 set (CMAKE_CXX_STANDARD 17)
+# TODO support c++14
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
@@ -88,18 +89,9 @@ add_service_files(
   FILES
   Capture.srv
   HDR.srv
-  ZividInfo.srv
-)
-
-#Add the generated srv files
-add_service_files(
-    DIRECTORY
-    srv
-    FILES
-    Available.srv
-    Connected.srv
-    Live.srv
-    Temperature.srv
+  CameraInfo.srv
+BooleanState.srv
+FloatState.srv
 )
 
 add_custom_target(

@@ -4,14 +4,12 @@
 #include <dynamic_reconfigure/config_tools.h>
 
 #include "zivid_ros_wrapper_gen.hpp"
-#include <zivid_ros_wrapper/Temperature.h>
-#include <zivid_ros_wrapper/Available.h>
-#include <zivid_ros_wrapper/Connected.h>
-#include <zivid_ros_wrapper/Live.h>
-
-
+#include <zivid_ros_wrapper/BooleanState.h>
+#include <zivid_ros_wrapper/FloatState.h>
 
 #include <Zivid/HDR.h>
+
+#include <boost/algorithm/string.hpp>
 
 #include <condition_variable>
 #include <csignal>
@@ -20,43 +18,44 @@
 
 namespace {
 
-    template<typename T>
-    bool srvTemperatureCallback(zivid_ros_wrapper::Temperature::Request&,
-                            zivid_ros_wrapper::Temperature::Response& res,
-                            const Zivid::Camera& camera)
-    {
-        const auto & cam = camera.state().get<T>();
-        res.value = cam.value();
-        //StateSrvValueConversion<T::ValueType, decltype(res.value)>::stateValueToSrvValue(
-        //    camera.state().isAvailable().value());
+  template<typename ValueType> struct ValueTypeToRosType {};
+  template<> struct ValueTypeToRosType<bool> { using type = zivid_ros_wrapper::BooleanState; };
+  template<> struct ValueTypeToRosType<float> { using type = zivid_ros_wrapper::FloatState; };
+  template<> struct ValueTypeToRosType<double> { using type = zivid_ros_wrapper::FloatState; };
+
+  template <typename ZividType>
+  ros::ServiceServer createCameraStateService(ros::NodeHandle & nh, const Zivid::Camera &camera)
+  {
+    // TODO handle better unknown states, ignore or error?
+    using RosType = typename ValueTypeToRosType<typename ZividType::ValueType>::type;
+
+    std::string servicePath = std::string("camera_state/") + (boost::algorithm::to_lower_copy(std::string(ZividType::path)));
+
+    ROS_INFO("Advertising cam state service for '%s' at '%s'", ZividType::name, servicePath.c_str());
+
+    boost::function<bool(typename RosType::Request&, typename RosType::Response&)>
+      callback = [&camera](typename RosType::Request& req, typename RosType::Response& res)
+      {
+        res.value = camera.state().get<std::remove_const_t<ZividType>>().value();
         return true;
-    }
+      };
+    return nh.advertiseService(servicePath, callback);
+  }
 
-    bool srvAvailableCallback(zivid_ros_wrapper::Available::Request&, zivid_ros_wrapper::Available::Response& res,
-                            const Zivid::Camera& camera)
-    {
-    res.value =
-        StateSrvValueConversion<Zivid::CameraState::Available::ValueType, decltype(res.value)>::stateValueToSrvValue(
-            camera.state().isAvailable().value());
-    return true;
-    }
-
-    bool srvConnectedCallback(zivid_ros_wrapper::Connected::Request&, zivid_ros_wrapper::Connected::Response& res,
-                            const Zivid::Camera& camera)
-    {
-    res.value =
-        StateSrvValueConversion<Zivid::CameraState::Connected::ValueType, decltype(res.value)>::stateValueToSrvValue(
-            camera.state().isConnected().value());
-    return true;
-    }
-
-    bool srvLiveCallback(zivid_ros_wrapper::Live::Request&, zivid_ros_wrapper::Live::Response& res,
-                        const Zivid::Camera& camera)
-    {
-    res.value = StateSrvValueConversion<Zivid::CameraState::Live::ValueType, decltype(res.value)>::stateValueToSrvValue(
-        camera.state().live().value());
-    return true;
-    }
+  template<class RootNode, class ListType> auto setupCameraStateServices(
+    const RootNode & rootNode, ListType & list, ros::NodeHandle & nh, const Zivid::Camera &camera)
+  {
+    // use traverseValues
+    rootNode.forEach([&](const auto &childNode) {
+      using ChildType = std::remove_reference_t<decltype(childNode)>;
+      if constexpr(ChildType::isContainer) {
+        setupCameraStateServices(childNode, list, nh, camera);
+      } else {
+        list.push_back(
+          createCameraStateService<ChildType>(nh, camera));
+      }
+    });
+  };
 }
 
 zivid_ros_wrapper::ZividRosWrapper::ZividRosWrapper()
@@ -151,46 +150,13 @@ void zivid_ros_wrapper::ZividRosWrapper::init()
       boost::bind(&zivid_ros_wrapper::ZividRosWrapper::hdrCaptureServiceHandler, this, _1, _2);
   hdr_service_ = priv.advertiseService("hdr", hdr_callback_func);
 
+  setupCameraStateServices(camera_.state(), generated_servers_, priv, camera_);
 
-
-
-  ROS_INFO("Registering Available service at %s", "available");
-  boost::function<bool(zivid_ros_wrapper::Available::Request&, zivid_ros_wrapper::Available::Response&)>
-      callback_srvAvailableCallback = boost::bind(&srvAvailableCallback, _1, _2, camera_);
-  generated_servers_.push_back(priv.advertiseService("available", callback_srvAvailableCallback));
-
-  ROS_INFO("Registering Connected service at %s", "connected");
-  boost::function<bool(zivid_ros_wrapper::Connected::Request&, zivid_ros_wrapper::Connected::Response&)>
-      callback_srvConnectedCallback = boost::bind(&srvConnectedCallback, _1, _2, camera_);
-  generated_servers_.push_back(priv.advertiseService("connected", callback_srvConnectedCallback));
-
-  ROS_INFO("Registering Live service at %s", "live");
-  boost::function<bool(zivid_ros_wrapper::Live::Request&, zivid_ros_wrapper::Live::Response&)>
-      callback_srvLiveCallback = boost::bind(&srvLiveCallback, _1, _2, camera_);
-  generated_servers_.push_back(priv.advertiseService("live", callback_srvLiveCallback));
-
-  auto temperatureNode = camera_.state().temperature();
-  temperatureNode.forEach([this, &priv](auto & n)
-  {
-    ROS_INFO("STIAN Adding node %s", n.path);
-
-    using SettingType = std::remove_reference_t<decltype(n)>;
-
-    boost::function<bool(zivid_ros_wrapper::Temperature::Request&, zivid_ros_wrapper::Temperature::Response&)>
-        callback_temp = [this](zivid_ros_wrapper::Temperature::Request& req, zivid_ros_wrapper::Temperature::Response& res)
-        {
-            return srvTemperatureCallback<SettingType>(req, res, camera_);
-        };
-
-    generated_servers_.push_back(priv.advertiseService(n.path, callback_temp));
-  });
-
-
-  ROS_INFO("Registering zivid info service at %s", "zivid_info");
-  boost::function<bool(zivid_ros_wrapper::ZividInfo::Request&, zivid_ros_wrapper::ZividInfo::Response&)>
+  ROS_INFO("Registering camera_info service at %s", "camera_info");
+  boost::function<bool(zivid_ros_wrapper::CameraInfo::Request&, zivid_ros_wrapper::CameraInfo::Response&)>
       zivid_info_callback_func =
-          boost::bind(&zivid_ros_wrapper::ZividRosWrapper::zividInfoServiceHandler, this, _1, _2);
-  zivid_info_service_ = priv.advertiseService("zivid_info", zivid_info_callback_func);
+          boost::bind(&zivid_ros_wrapper::ZividRosWrapper::cameraInfoServiceHandler, this, _1, _2);
+  zivid_info_service_ = priv.advertiseService("camera_info", zivid_info_callback_func);
 }
 
 void zivid_ros_wrapper::ZividRosWrapper::disconnect()
@@ -391,8 +357,8 @@ bool zivid_ros_wrapper::ZividRosWrapper::hdrCaptureServiceHandler(zivid_ros_wrap
   return false;
 }
 
-bool zivid_ros_wrapper::ZividRosWrapper::zividInfoServiceHandler(zivid_ros_wrapper::ZividInfo::Request&,
-                                                                 zivid_ros_wrapper::ZividInfo::Response& res)
+bool zivid_ros_wrapper::ZividRosWrapper::cameraInfoServiceHandler(zivid_ros_wrapper::CameraInfo::Request&,
+                                                                 zivid_ros_wrapper::CameraInfo::Response& res)
 {
   res.model_name = camera_.modelName();
   res.camera_revision = camera_.revision().toString();

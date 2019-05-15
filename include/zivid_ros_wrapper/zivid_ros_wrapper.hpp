@@ -9,7 +9,7 @@
 #include <zivid_ros_wrapper/ZividCameraConfig.h>
 #include <zivid_ros_wrapper/Capture.h>
 #include <zivid_ros_wrapper/HDR.h>
-#include <zivid_ros_wrapper/ZividInfo.h>
+#include <zivid_ros_wrapper/CameraInfo.h>
 
 #include <Zivid/Application.h>
 #include <Zivid/Camera.h>
@@ -45,7 +45,7 @@ private:
   void configureCameraMode(int camera_mode);
   bool captureServiceHandler(zivid_ros_wrapper::Capture::Request& req, zivid_ros_wrapper::Capture::Response& res);
   bool hdrCaptureServiceHandler(zivid_ros_wrapper::HDR::Request& req, zivid_ros_wrapper::HDR::Response& res);
-  bool zividInfoServiceHandler(zivid_ros_wrapper::ZividInfo::Request& req, zivid_ros_wrapper::ZividInfo::Response& res);
+  bool cameraInfoServiceHandler(zivid_ros_wrapper::CameraInfo::Request& req, zivid_ros_wrapper::CameraInfo::Response& res);
 
   Zivid::Application zivid_;
   Zivid::Camera camera_;
