@@ -17,7 +17,6 @@ endif(USE_COMPILER_WARNING_OPTIONS)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-#find_package(Boost 1.65.0 COMPONENTS system filesystem ${BOOST_STACKTRACE_LIBRARY} REQUIRED)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -36,8 +35,8 @@ if(OpenMP_FOUND)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
-add_executable(${PROJECT_NAME}_gen src/zivid_ros_wrapper_gen.cpp)
-target_link_libraries(${PROJECT_NAME}_gen ZividCore)
+add_executable(${PROJECT_NAME}_settings_generator src/settings_generator.cpp)
+target_link_libraries(${PROJECT_NAME}_settings_generator ZividCore)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -96,7 +95,7 @@ add_custom_target(
     ${PROJECT_NAME}_generator
     COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/state_srv_files
     COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/zivid_generated_headers
-    COMMAND ${PROJECT_NAME}_gen
+    COMMAND ${PROJECT_NAME}_settings_generator
     COMMAND chmod a+x ${CMAKE_CURRENT_BINARY_DIR}/ZividSettings.cfg
     BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/ZividSettings.cfg
     COMMENT "Running generator"

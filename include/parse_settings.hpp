@@ -1,5 +1,5 @@
-#ifndef ZIVID_ROS_WRAPPER_GEN_M
-#define ZIVID_ROS_WRAPPER_GEN_M
+#ifndef PARSE_SETTINGS_H
+#define PARSE_SETTINGS_H
 
 #include <dynamic_reconfigure/config_tools.h>
 
@@ -61,100 +61,6 @@ std::string convertSettingsPathToConfigPath(const std::string& path_string)
   return return_string;
 }
 
-std::string getFileNameFromZividStatePath(const std::string& state_entry)
-{
-  std::string return_string;
-
-  for (int i = 0; i < state_entry.size(); i++)
-  {
-    char current_char = state_entry[i];
-    bool skip_char = false;
-
-    if (current_char == '/')
-      skip_char = true;
-
-    if (!skip_char)
-      return_string += current_char;
-  }
-
-  return_string += ".srv";
-
-  return return_string;
-}
-
-template <typename StateType>
-std::string getTypeNameFromZividState(void)
-{
-  static_assert("The default getTypeNameFromZividState type was called. You will need to specify type conversion of "
-                "this value. (Standar ros message types required)");
-  return "";
-}
-template <>
-std::string getTypeNameFromZividState<bool>(void)
-{
-  return "bool";
-}
-template <>
-std::string getTypeNameFromZividState<double>(void)
-{
-  return "float64";
-}
-
-template <typename StateType, typename SRVType>
-class StateSrvValueConversion
-{
-public:
-  static StateType srvValueToStateValue(const SRVType& srv_value)
-  {
-    static_assert(AssertPair<StateType, SRVType>::value, "No conversion is specified between this srv type to state "
-                                                         "type");
-  }
-  static SRVType stateValueToSrvValue(const StateType& state_value)
-  {
-    static_assert(AssertPair<StateType, SRVType>::value, "No conversion is specified between this state type to srv "
-                                                         "type");
-  }
-  static std::string getSrvValueType(void)
-  {
-    static_assert(AssertPair<StateType, SRVType>::value, "No srv type string is specified for this state type to srv "
-                                                         "type");
-    return "";
-  }
-};
-template <>
-class StateSrvValueConversion<bool, uint8_t>
-{
-public:
-  static bool srvValueToStateValue(const uint8_t& srv_value)
-  {
-    return srv_value;
-  }
-  static uint8_t stateValueToSrvValue(const bool& state_value)
-  {
-    return state_value;
-  }
-  static std::string getSrvValueType(void)
-  {
-    return "bool";
-  }
-};
-template <>
-class StateSrvValueConversion<double, double>
-{
-public:
-  static double srvValueToStateValue(const double& srv_value)
-  {
-    return srv_value;
-  }
-  static double stateValueToSrvValue(const double& state_value)
-  {
-    return state_value;
-  }
-  static std::string getSrvValueType(void)
-  {
-    return "float64";
-  }
-};
 
 // Template for type conversion. The Config files in the dynamic_reconfigure package in ros
 // only support the types bool, int, double and string. The Zivid settings use different
@@ -177,14 +83,8 @@ public:
                                                                "be added for this setting type. It must be converted "
                                                                "from either int, bool, double or std::string");
   }
-  static std::string getConfigValueType(void)
-  {
-    static_assert(AssertPair<SettingsType, ConfigType>::value, "TODO false A config typename must be specified as a "
-                                                               "string wich is either bool_t, int_t, double_t or "
-                                                               "str_t");
-    return "";
-  }
 };
+
 template <>
 class ConfigSettingsValueConversion<bool, bool>
 {
@@ -197,11 +97,9 @@ public:
   {
     return settings_value;
   }
-  static std::string getConfigValueType(void)
-  {
-    return "bool_t";
-  }
+  static constexpr const char * configValueType = "bool_t";
 };
+
 template <>
 class ConfigSettingsValueConversion<double, double>
 {
@@ -214,11 +112,9 @@ public:
   {
     return settings_value;
   }
-  static std::string getConfigValueType(void)
-  {
-    return "double_t";
-  }
+  static constexpr const char * configValueType = "double_t";
 };
+
 template <>
 class ConfigSettingsValueConversion<std::chrono::microseconds, double>
 {
@@ -232,11 +128,9 @@ public:
   {
     return ((double)settings_value.count()) / 1000000.0;
   }
-  static std::string getConfigValueType(void)
-  {
-    return "double_t";
-  }
+  static constexpr const char * configValueType = "double_t";
 };
+
 template <>
 class ConfigSettingsValueConversion<size_t, int>
 {
@@ -249,10 +143,7 @@ public:
   {
     return (int)settings_value;
   }
-  static std::string getConfigValueType(void)
-  {
-    return "int_t";
-  }
+  static constexpr const char * configValueType = "int_t";
 };
 
 // Template for reading a config message by looking up on a key, and return the corresponding
@@ -350,5 +241,4 @@ SettingsType getConfigValueFromString(const std::string& key, const dynamic_reco
                                                     "specify which config type each settings type should be converted "
                                                     "to. Options are: bool, int, double and string");
 }
-
-#endif  // ZIVID_ROS_WRAPPER_GEN_M
+#endif  // PARSE_SETTINGS_H

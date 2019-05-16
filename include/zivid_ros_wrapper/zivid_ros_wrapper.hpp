@@ -5,8 +5,9 @@
 #include "sensor_msgs/PointCloud2.h"
 
 #include <dynamic_reconfigure/server.h>
-#include <zivid_ros_wrapper/ZividFrameSettingsConfig.h>
+#include <zivid_ros_wrapper/CaptureFrameSettingsConfig.h>
 #include <zivid_ros_wrapper/ZividCameraConfig.h>
+#include <zivid_ros_wrapper/CaptureGeneralSettingsConfig.h>
 #include <zivid_ros_wrapper/Capture.h>
 #include <zivid_ros_wrapper/HDR.h>
 #include <zivid_ros_wrapper/CameraInfo.h>
@@ -28,7 +29,7 @@ private:
   struct DynamicReconfigureSettings
   {
     ros::NodeHandle node_handle;
-    std::shared_ptr<dynamic_reconfigure::Server<zivid_ros_wrapper::ZividFrameSettingsConfig>> reconfigure_server;
+    std::shared_ptr<dynamic_reconfigure::Server<zivid_ros_wrapper::CaptureFrameSettingsConfig>> reconfigure_server;
     std::string name;
     Zivid::Settings settings;
   };
@@ -36,10 +37,11 @@ private:
   Zivid::Point zividFrameToROSFrame(const Zivid::Point& point);
   sensor_msgs::PointCloud2 zividFrameToPointCloud2(const Zivid::Frame& frame);
   void frameCallbackFunction(const Zivid::Frame& frame);
-  void settingsReconfigureCallback(zivid_ros_wrapper::ZividFrameSettingsConfig& config, uint32_t level,
+  void settingsReconfigureCallback(zivid_ros_wrapper::CaptureFrameSettingsConfig& config, uint32_t level,
                                    const std::string& name);
   void newSettings(const std::string& name);
   void cameraReconfigureCallback(zivid_ros_wrapper::ZividCameraConfig& config, uint32_t level);
+  void captureGeneralReconfigureCb(zivid_ros_wrapper::CaptureGeneralSettingsConfig& config, uint32_t level);
   void configureCameraMode(int camera_mode);
   bool captureServiceHandler(zivid_ros_wrapper::Capture::Request& req, zivid_ros_wrapper::Capture::Response& res);
   bool hdrCaptureServiceHandler(zivid_ros_wrapper::HDR::Request& req, zivid_ros_wrapper::HDR::Response& res);
@@ -56,6 +58,12 @@ private:
 
   ros::NodeHandle camera_reconfigure_handler_;
   dynamic_reconfigure::Server<zivid_ros_wrapper::ZividCameraConfig> camera_reconfigure_server_;
+
+  ros::NodeHandle capture_general_dynreconfig_node_;
+  dynamic_reconfigure::Server<zivid_ros_wrapper::CaptureGeneralSettingsConfig> capture_general_dynreconfig_server_;
+
+
+
 
   std::vector<DynamicReconfigureSettings> dynamic_reconfigure_settings_list_;
 
