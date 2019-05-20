@@ -20,4 +20,4 @@ for fileName in $cppFiles $hFiles; do
         || exit $?
 done
 
-echo Success! ["$0"]
+echo Success! ["$(basename $0)"]
