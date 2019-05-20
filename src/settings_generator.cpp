@@ -164,7 +164,18 @@ namespace {
     return "";
   }
 
+/*
 
+
+  class ZividFrameSettingsAdapter
+  {
+    public:
+      void populate(Zivid::Settings &);
+    private:
+
+  }
+
+*/
 
 
 

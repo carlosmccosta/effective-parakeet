@@ -5,7 +5,7 @@ services:
 
 env:
   - OS=ros:melodic-ros-base-bionic
-  
+
 before_install:
   - docker pull $OS
 

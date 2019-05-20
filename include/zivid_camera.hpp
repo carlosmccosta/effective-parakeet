@@ -28,10 +28,11 @@ public:
 private:
   struct DynamicReconfigureSettings
   {
+    std::string name;
     ros::NodeHandle node_handle;
     std::shared_ptr<dynamic_reconfigure::Server<zivid_camera::CaptureFrameSettingsConfig>> reconfigure_server;
-    std::string name;
-    Zivid::Settings settings;
+    //Zivid::Settings settings;
+    zivid_camera::CaptureFrameSettingsConfig config;
   };
 
   Zivid::Point zividFrameToROSFrame(const Zivid::Point& point);
@@ -44,29 +45,22 @@ private:
   void captureGeneralReconfigureCb(zivid_camera::CaptureGeneralSettingsConfig& config, uint32_t level);
   void configureCameraMode(int camera_mode);
   bool captureServiceHandler(zivid_camera::Capture::Request& req, zivid_camera::Capture::Response& res);
-  bool hdrCaptureServiceHandler(zivid_camera::HDR::Request& req, zivid_camera::HDR::Response& res);
   bool cameraInfoServiceHandler(zivid_camera::CameraInfo::Request& req, zivid_camera::CameraInfo::Response& res);
 
   Zivid::Application zivid_;
   Zivid::Camera camera_;
   int camera_mode_;
+  zivid_camera::CaptureGeneralSettingsConfig currentCaptureGeneralConfig_;
+
   ros::Publisher pointcloud_pub_;
   ros::ServiceServer capture_service_;
-  ros::ServiceServer hdr_service_;
   std::vector<ros::ServiceServer> generated_servers_;
   ros::ServiceServer zivid_info_service_;
-
   ros::NodeHandle camera_reconfigure_handler_;
   dynamic_reconfigure::Server<zivid_camera::ZividCameraConfig> camera_reconfigure_server_;
-
   ros::NodeHandle capture_general_dynreconfig_node_;
   dynamic_reconfigure::Server<zivid_camera::CaptureGeneralSettingsConfig> capture_general_dynreconfig_server_;
-
-
-
-
   std::vector<DynamicReconfigureSettings> dynamic_reconfigure_settings_list_;
-
   int frame_id_;
 };
 }  // namespace zivid_camera

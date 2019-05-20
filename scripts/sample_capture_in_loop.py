@@ -4,6 +4,7 @@
 # package.
 
 import rospy
+import rosservice
 import dynamic_reconfigure.client
 from zivid_camera.srv import *
 from std_msgs.msg import String
@@ -14,24 +15,27 @@ def on_pointcloud(data):
 
 def capture_loop():
 
-    rospy.init_node('zivid_listener', anonymous=True)
+    rospy.init_node('zivid_sample', anonymous=True)
 
     rospy.Subscriber("/zivid_camera/pointcloud", PointCloud2, on_pointcloud)
 
     capture = rospy.ServiceProxy('/zivid_camera/capture', Capture)
 
-    frame_1_settings_client = dynamic_reconfigure.client.Client("/zivid_camera/frame_settings_1")
+    #print(rosservice.rosservice_find("dynamic_reconfigure/Reconfigure"))
+
+    frame_1_settings_client = dynamic_reconfigure.client.Client("/zivid_camera/frame_settings/frame_0")
+    #print(str(frame_1_settings_client.get_configuration()))
 
     iris = 20
     exposure_time = 6500
-    rate = rospy.Rate(5) # 0.5hz
+    rate = rospy.Rate(5)
     while not rospy.is_shutdown():
         iris = iris + 1
         exposure_time = exposure_time + 1000
 
-        settings =  {"iris": iris, "exposure_time": exposure_time}
+        settings = {"iris": iris, "exposure_time": exposure_time}
         print("Updating camera settings: " + str(settings))
-        frame_1_settings_client.update_configuration(settings)
+        #frame_1_settings_client.update_configuration(settings)
         print("Calling capture()")
         capture()
 

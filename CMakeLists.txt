@@ -85,7 +85,6 @@ add_service_files(
   srv
   FILES
   Capture.srv
-  HDR.srv
   CameraInfo.srv
   BooleanState.srv
   FloatState.srv
