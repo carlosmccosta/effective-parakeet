@@ -11,12 +11,12 @@ apt-yes dist-upgrade || exit $?
 
 apt-yes install \
 	wget \
+	clang-format \
     || exit $?
 
 function install_www_deb {
     TMP_DIR=$(mktemp --tmpdir --directory install_www_deb-XXXX) || exit $?
     pushd $TMP_DIR || exit $?
-    wget -q "$@" || exit $?
     apt-yes install --fix-broken ./*deb || exit $?
     popd || exit $?
     rm -r $TMP_DIR || exit $?

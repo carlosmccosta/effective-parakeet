@@ -15,5 +15,6 @@ script:
       --workdir /host/continuous-integration
       $OS
       bash -c "./setup.sh &&
+               ./lint.sh &&
                ./test.sh"
 

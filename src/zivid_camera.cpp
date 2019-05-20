@@ -15,53 +15,68 @@
 #include <iostream>
 #include <sstream>
 
-namespace {
+namespace
+{
+template <typename ValueType>
+struct ValueTypeToRosType
+{
+};
+// TODO probably we want to use std_msg types
+template <>
+struct ValueTypeToRosType<bool>
+{
+  using type = zivid_camera::BooleanState;
+};
+template <>
+struct ValueTypeToRosType<float>
+{
+  using type = zivid_camera::FloatState;
+};
+template <>
+struct ValueTypeToRosType<double>
+{
+  using type = zivid_camera::FloatState;
+};
 
-  template<typename ValueType> struct ValueTypeToRosType {};
-  // TODO probably we want to use std_msg types
-  template<> struct ValueTypeToRosType<bool> { using type = zivid_camera::BooleanState; };
-  template<> struct ValueTypeToRosType<float> { using type = zivid_camera::FloatState; };
-  template<> struct ValueTypeToRosType<double> { using type = zivid_camera::FloatState; };
+template <typename ZividType>
+ros::ServiceServer createCameraStateService(ros::NodeHandle& nh, const Zivid::Camera& camera)
+{
+  // TODO handle better unknown states, ignore or error?
+  using RosType = typename ValueTypeToRosType<typename ZividType::ValueType>::type;
 
-  template <typename ZividType>
-  ros::ServiceServer createCameraStateService(ros::NodeHandle & nh, const Zivid::Camera &camera)
-  {
-    // TODO handle better unknown states, ignore or error?
-    using RosType = typename ValueTypeToRosType<typename ZividType::ValueType>::type;
+  std::string servicePath =
+      std::string("camera_state/") + (boost::algorithm::to_lower_copy(std::string(ZividType::path)));
 
-    std::string servicePath = std::string("camera_state/") + (boost::algorithm::to_lower_copy(std::string(ZividType::path)));
+  ROS_INFO("Advertising cam state service for '%s' at '%s'", ZividType::name, servicePath.c_str());
 
-    ROS_INFO("Advertising cam state service for '%s' at '%s'", ZividType::name, servicePath.c_str());
-
-    boost::function<bool(typename RosType::Request&, typename RosType::Response&)>
-      callback = [&camera](typename RosType::Request& req, typename RosType::Response& res)
-      {
+  boost::function<bool(typename RosType::Request&, typename RosType::Response&)> callback =
+      [&camera](typename RosType::Request& req, typename RosType::Response& res) {
         res.value = camera.state().get<ZividType>().value();
         return true;
       };
-    return nh.advertiseService(servicePath, callback);
-  }
-
-  template<class RootNode, class ListType> auto setupCameraStateServices(
-    const RootNode & rootNode, ListType & list, ros::NodeHandle & nh, const Zivid::Camera &camera)
-  {
-    rootNode.traverseValues([&](const auto &childNode) {
-      using ChildType = std::remove_const_t<std::remove_reference_t<decltype(childNode)>>;
-        list.push_back(
-          createCameraStateService<ChildType>(nh, camera));
-    });
-  };
-
-  sensor_msgs::PointField createPointField(std::string name, uint32_t offset, uint8_t datatype, uint32_t count)
-  {
-    sensor_msgs::PointField point_field;
-    point_field.name = name;
-    point_field.offset = offset;
-    point_field.datatype = datatype;
-    point_field.count = count;
-    return point_field;
-  }
+  return nh.advertiseService(servicePath, callback);
 }
+
+template <class RootNode, class ListType>
+auto setupCameraStateServices(const RootNode& rootNode, ListType& list, ros::NodeHandle& nh,
+                              const Zivid::Camera& camera)
+{
+  rootNode.traverseValues([&](const auto& childNode) {
+    using ChildType = std::remove_const_t<std::remove_reference_t<decltype(childNode)>>;
+    list.push_back(createCameraStateService<ChildType>(nh, camera));
+  });
+};
+
+sensor_msgs::PointField createPointField(std::string name, uint32_t offset, uint8_t datatype, uint32_t count)
+{
+  sensor_msgs::PointField point_field;
+  point_field.name = name;
+  point_field.offset = offset;
+  point_field.datatype = datatype;
+  point_field.count = count;
+  return point_field;
+}
+}  // namespace
 
 zivid_camera::ZividCamera::ZividCamera()
   : camera_reconfigure_handler_("~/camera_config")
@@ -71,7 +86,7 @@ zivid_camera::ZividCamera::ZividCamera()
   , camera_mode_(0)
   , currentCaptureGeneralConfig_(zivid_camera::CaptureGeneralSettingsConfig::__getDefault__())
 {
-  ROS_INFO("Zivid ROS driver version 0.0.1"); //todo get from cmake
+  ROS_INFO("Zivid ROS driver version 0.0.1");  // todo get from cmake
   ROS_INFO("Built towards Zivid API version %s", ZIVID_VERSION);
   ROS_INFO("Running with Zivid API version %s", Zivid::Version::libraryVersion().c_str());
 
@@ -91,7 +106,8 @@ zivid_camera::ZividCamera::ZividCamera()
     ROS_INFO("Using test file %s", test_mode_file.c_str());
   }
 
-  if (zivid_.cameras().empty()) {
+  if (zivid_.cameras().empty())
+  {
     ROS_ERROR("No Zivid cameras connected");
     throw std::runtime_error("No Zivid Cameras connected");
   }
@@ -103,7 +119,8 @@ zivid_camera::ZividCamera::ZividCamera()
       ROS_INFO("Connecting to first available Zivid camera ...");
       camera_ = zivid_.connectCamera();
     }
-    else if (serial_number.find("sn") == 0) {
+    else if (serial_number.find("sn") == 0)
+    {
       const auto sn = serial_number.substr(2);
       ROS_INFO("Connecting to Zivid camera with serial number %s ...", sn.c_str());
       camera_ = zivid_.connectCamera(Zivid::SerialNumber(sn));
@@ -139,16 +156,15 @@ zivid_camera::ZividCamera::ZividCamera()
   pointcloud_pub_ = priv.advertise<sensor_msgs::PointCloud2>("pointcloud", 1);
 
   ROS_INFO("Registering pointcloud capture service at '%s'", "capture");
-  boost::function<bool(zivid_camera::Capture::Request&, zivid_camera::Capture::Response&)>
-      capture_callback_func = boost::bind(&zivid_camera::ZividCamera::captureServiceHandler, this, _1, _2);
+  boost::function<bool(zivid_camera::Capture::Request&, zivid_camera::Capture::Response&)> capture_callback_func =
+      boost::bind(&zivid_camera::ZividCamera::captureServiceHandler, this, _1, _2);
   capture_service_ = priv.advertiseService("capture", capture_callback_func);
 
   setupCameraStateServices(camera_.state(), generated_servers_, priv, camera_);
 
   ROS_INFO("Registering camera_info service at '%s'", "camera_info");
   boost::function<bool(zivid_camera::CameraInfo::Request&, zivid_camera::CameraInfo::Response&)>
-      zivid_info_callback_func =
-          boost::bind(&zivid_camera::ZividCamera::cameraInfoServiceHandler, this, _1, _2);
+      zivid_info_callback_func = boost::bind(&zivid_camera::ZividCamera::cameraInfoServiceHandler, this, _1, _2);
   zivid_info_service_ = priv.advertiseService("camera_info", zivid_info_callback_func);
 }
 
@@ -206,12 +222,13 @@ sensor_msgs::PointCloud2 zivid_camera::ZividCamera::zividFrameToPointCloud2(cons
 void zivid_camera::ZividCamera::newSettings(const std::string& name)
 {
   dynamic_reconfigure_settings_list_.emplace_back();
-  auto & reconfigure_settings = dynamic_reconfigure_settings_list_.back();
+  auto& reconfigure_settings = dynamic_reconfigure_settings_list_.back();
 
   reconfigure_settings.name = name;
   reconfigure_settings.node_handle = ros::NodeHandle("~/" + name);
   reconfigure_settings.reconfigure_server =
-      std::make_shared<dynamic_reconfigure::Server<zivid_camera::CaptureFrameSettingsConfig>>(reconfigure_settings.node_handle);
+      std::make_shared<dynamic_reconfigure::Server<zivid_camera::CaptureFrameSettingsConfig>>(
+          reconfigure_settings.node_handle);
   reconfigure_settings.reconfigure_server->setCallback(
       boost::bind(&zivid_camera::ZividCamera::settingsReconfigureCallback, this, _1, _2, name));
 
@@ -227,11 +244,11 @@ void zivid_camera::ZividCamera::frameCallbackFunction(const Zivid::Frame& frame)
 }
 
 void zivid_camera::ZividCamera::settingsReconfigureCallback(zivid_camera::CaptureFrameSettingsConfig& config,
-                                                                     uint32_t /*level*/, const std::string& name)
+                                                            uint32_t /*level*/, const std::string& name)
 {
   ROS_INFO("Dynamic reconfigure of node '%s'", name.c_str());
 
-  for (auto & reconfigure_settings : dynamic_reconfigure_settings_list_)
+  for (auto& reconfigure_settings : dynamic_reconfigure_settings_list_)
   {
     if (reconfigure_settings.name == name)
     {
@@ -241,14 +258,14 @@ void zivid_camera::ZividCamera::settingsReconfigureCallback(zivid_camera::Captur
   }
 }
 
-void zivid_camera::ZividCamera::cameraReconfigureCallback(zivid_camera::ZividCameraConfig& config,
-                                                                   uint32_t /*level*/)
+void zivid_camera::ZividCamera::cameraReconfigureCallback(zivid_camera::ZividCameraConfig& config, uint32_t /*level*/)
 {
   ROS_INFO("%s", __func__);
   configureCameraMode(config.camera_mode);
 }
 
-void zivid_camera::ZividCamera::captureGeneralReconfigureCb(zivid_camera::CaptureGeneralSettingsConfig& config, uint32_t level)
+void zivid_camera::ZividCamera::captureGeneralReconfigureCb(zivid_camera::CaptureGeneralSettingsConfig& config,
+                                                            uint32_t level)
 {
   ROS_INFO("%s", __func__);
   currentCaptureGeneralConfig_ = config;
@@ -278,7 +295,7 @@ void zivid_camera::ZividCamera::configureCameraMode(int camera_mode)
 }
 
 bool zivid_camera::ZividCamera::captureServiceHandler(zivid_camera::Capture::Request& /* req */,
-                                                               zivid_camera::Capture::Response& res)
+                                                      zivid_camera::Capture::Response& res)
 {
   ROS_INFO("Received capture request");
 
@@ -291,22 +308,23 @@ bool zivid_camera::ZividCamera::captureServiceHandler(zivid_camera::Capture::Req
 
     // apply currentCaptureGeneralConfig_.
     // TODO autogen this.
-    baseSetting.set(Zivid::Settings::RedBalance { currentCaptureGeneralConfig_.red_balance });
-    baseSetting.set(Zivid::Settings::BlueBalance { currentCaptureGeneralConfig_.blue_balance });
+    baseSetting.set(Zivid::Settings::RedBalance{ currentCaptureGeneralConfig_.red_balance });
+    baseSetting.set(Zivid::Settings::BlueBalance{ currentCaptureGeneralConfig_.blue_balance });
     // +filters
 
-    for (auto & reconfigure_settings : dynamic_reconfigure_settings_list_)
+    for (auto& reconfigure_settings : dynamic_reconfigure_settings_list_)
     {
-      const auto & config = reconfigure_settings.config;
+      const auto& config = reconfigure_settings.config;
 
       ROS_INFO("Frame '%s' iris '%d'", reconfigure_settings.name.c_str(), config.iris);
-      if (config.iris > 0) {
-        Zivid::Settings s { baseSetting };
+      if (config.iris > 0)
+      {
+        Zivid::Settings s{ baseSetting };
 
         // TODO autogen this.
         s.set(Zivid::Settings::Iris{ static_cast<std::size_t>(config.iris) });
-        s.set(Zivid::Settings::ExposureTime{ std::chrono::duration_cast<std::chrono::microseconds> (
-          std::chrono::duration<double>(config.exposure_time)) });
+        s.set(Zivid::Settings::ExposureTime{ std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::duration<double>(config.exposure_time)) });
         s.set(Zivid::Settings::Brightness{ config.brightness });
         s.set(Zivid::Settings::Gain{ config.gain });
         s.set(Zivid::Settings::Bidirectional{ config.bidirectional });
@@ -319,17 +337,20 @@ bool zivid_camera::ZividCamera::captureServiceHandler(zivid_camera::Capture::Req
       ROS_INFO("Capturing with %zd frames", settings.size());
       std::vector<Zivid::Frame> frames;
       frames.reserve(settings.size());
-      for (const auto & s: settings) {
+      for (const auto& s : settings)
+      {
         camera_.setSettings(s);
         ROS_INFO("Calling capture with settings: %s", camera_.settings().toString().c_str());
         frames.emplace_back(camera_.capture());
       }
 
-      auto frame = [&]()
-      {
-        if (frames.size() > 1) {
+      auto frame = [&]() {
+        if (frames.size() > 1)
+        {
           return Zivid::HDR::combineFrames(begin(frames), end(frames));
-        } else {
+        }
+        else
+        {
           return frames[0];
         }
       }();
@@ -350,9 +371,9 @@ bool zivid_camera::ZividCamera::captureServiceHandler(zivid_camera::Capture::Req
 }
 
 bool zivid_camera::ZividCamera::cameraInfoServiceHandler(zivid_camera::CameraInfo::Request&,
-                                                                 zivid_camera::CameraInfo::Response& res)
+                                                         zivid_camera::CameraInfo::Response& res)
 {
-  //TODO investigate if this should be individual services
+  // TODO investigate if this should be individual services
   res.model_name = camera_.modelName();
   res.camera_revision = camera_.revision().toString();
   res.serial_number = camera_.serialNumber().toString();
