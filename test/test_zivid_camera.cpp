@@ -1,10 +1,10 @@
-#include "zivid_ros_wrapper/zivid_ros_wrapper.hpp"
+#include "zivid_camera/zivid_camera.hpp"
 
 #include <ros/ros.h>
 #include <gtest/gtest.h>
 #include <thread>
 
-#include "zivid_ros_wrapper_gen.hpp"
+#include "zivid_camera_gen.hpp"
 TEST(ParameterPathRename, testAlreadyCorrectString)
 {
   EXPECT_EQ("filters_outlier_enabled", convertSettingsPathToConfigPath("filters_outlier_enabled"));
@@ -36,17 +36,17 @@ TEST(ParameterPathRename, testOnlySingleUnderscore)
 }
 
 // Some initialization is required to setup the ros node in test mode
-class ZividRosWrapperClassTest : public testing::Test
+class ZividCameraClassTest : public testing::Test
 {
 public:
-  ZividRosWrapperClassTest(void)
+  ZividCameraClassTest(void)
   {
     // param_setup.setParam("zivid_test_mode_file", "test.zdf");
 
-    // system("rosrun dynamic_reconfigure dynparam set_from_parameters zivid_ros_wrapper capture_mode \"capture\"");
+    // system("rosrun dynamic_reconfigure dynparam set_from_parameters zivid_camera capture_mode \"capture\"");
   }
 
-  ~ZividRosWrapperClassTest(void)
+  ~ZividCameraClassTest(void)
   {
   }
 
@@ -59,10 +59,10 @@ protected:
   }
 };
 
-TEST_F(ZividRosWrapperClassTest, testConstructor)
+TEST_F(ZividCameraClassTest, testConstructor)
 {
   // This crashes because of underlying zivid application
-  zivid_ros_wrapper::ZividRosWrapper wrapper;
+  zivid_camera::ZividCamera wrapper;
 }
 
 int main(int argc, char** argv)

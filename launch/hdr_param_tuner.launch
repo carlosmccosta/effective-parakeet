@@ -1,9 +1,9 @@
 <launch>
 
-    <node name="zivid_ros_wrapper_node" pkg="zivid_ros_wrapper" type="zivid_ros_wrapper_node" >
+    <node name="zivid_camera_node" pkg="zivid_camera" type="zivid_camera_node" >
         <param name="camera_config/camera_mode" value="2" />
     </node>
     <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" />
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find zivid_ros_wrapper)/rviz/hdr_view.rviz"/>
-    <node name="zivid_ros_wrapper_hdr_republisher_node" pkg="zivid_ros_wrapper" type="zivid_ros_wrapper_hdr_republisher_node" />
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find zivid_camera)/rviz/hdr_view.rviz"/>
+    <node name="zivid_camera_hdr_republisher_node" pkg="zivid_camera" type="zivid_camera_hdr_republisher_node" />
 </launch>

@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>zivid_ros_wrapper</name>
+  <name>zivid_camera</name>
   <version>0.1.0</version>
-  <description>The zivid_ros_wrapper package</description>
+  <description>The zivid_camera package</description>
 
-  <maintainer email="ulrich.isachsen@zivid.com">ulrich</maintainer>
+  <maintainer email="support@zivid.com">Zivid</maintainer>
 
 
   <license>BSD3</license>
@@ -13,7 +13,7 @@
   <url type="website>">http://zivid.com</url>
 
 
-  <author email="ulrich.isachsen@zivid.com">Ulrich Isachsen</author>
+  <author email="support@zivid.com">Zivid</author>
 
 
   <buildtool_depend>catkin</buildtool_depend>

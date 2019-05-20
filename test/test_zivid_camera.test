@@ -2,5 +2,5 @@
     <param name="zivid_test_mode_enabled" type="bool" value="True" />
     <param name="zivid_test_mode_file" type="str" value="/home/ulrich/ZividData/MiscObjects.zdf" />
     <param name="~camera_mode" type="string" value="capture" />
-    <test test-name="zivid_ros_wrapper_test" pkg="zivid_ros_wrapper" type="zivid_ros_wrapper_test" />
+    <test test-name="zivid_camera_test" pkg="zivid_camera" type="zivid_camera_test" />
 </launch>

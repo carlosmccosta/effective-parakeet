@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(zivid_ros_wrapper LANGUAGES CXX)
+project(zivid_camera LANGUAGES CXX)
 set (CMAKE_CXX_STANDARD 17)
 # TODO support c++14
 
@@ -76,7 +76,7 @@ target_link_libraries(${PROJECT_NAME}_settings_generator ZividCore)
 
 generate_dynamic_reconfigure_options(
     cfg/ZividCamera.cfg
-    ../../build/zivid_ros_wrapper/ZividSettings.cfg
+    ../../build/zivid_camera/ZividSettings.cfg
 )
 
 ## Generate services in the 'srv' folder
@@ -120,7 +120,7 @@ generate_messages(
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include ${catkin_INCLUDE_DIRS}
-  LIBRARIES zivid_ros_wrapper
+  LIBRARIES zivid_camera
   CATKIN_DEPENDS message_runtime sensor_msgs std_msgs
 #  DEPENDS system_lib
 )
@@ -143,7 +143,7 @@ include_directories(
 
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
-    src/${PROJECT_NAME}/zivid_ros_wrapper.cpp
+    src/zivid_camera.cpp
 )
 
 ## Add cmake target dependencies of the library
@@ -153,7 +153,7 @@ add_library(${PROJECT_NAME}
 # add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 
 
-add_executable(${PROJECT_NAME}_node src/zivid_ros_wrapper_node.cpp)
+add_executable(${PROJECT_NAME}_node src/zivid_camera_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -219,7 +219,7 @@ target_link_libraries(${PROJECT_NAME}_node
 if(CATKIN_ENABLE_TESTING)
     find_package(rostest REQUIRED)
 
-    add_rostest_gtest(${PROJECT_NAME}_test test/test_zivid_ros_wrapper.test test/test_zivid_ros_wrapper.cpp)
+    add_rostest_gtest(${PROJECT_NAME}_test test/test_zivid_camera.test test/test_zivid_camera.cpp)
     target_link_libraries(${PROJECT_NAME}_test ${PROJECT_NAME} ${catkin_LIBRARIES})
 endif()
 #if(TARGET ${PROJECT_NAME}-test)

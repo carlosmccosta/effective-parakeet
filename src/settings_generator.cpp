@@ -185,18 +185,18 @@ namespace {
 
     ss << "#!/usr/bin/env python\n\n"
           "#GENERATED FILE\n\n"
-          "PACKAGE = \"zivid_ros_wrapper\"\n"
+          "PACKAGE = \"zivid_camera\"\n"
           "import roslib\n"
           "roslib.load_manifest(PACKAGE);\n"
           "from dynamic_reconfigure.parameter_generator_catkin import *\n\n";
 
     ss << "frame_settings_gen = ParameterGenerator()\n";
     ss << frameSettingsConfig(Zivid::Settings{}, "frame_settings_gen");
-    ss << "frame_settings_gen.generate(PACKAGE, \"zivid_ros_wrapper\", \"CaptureFrameSettings\")\n\n";
+    ss << "frame_settings_gen.generate(PACKAGE, \"zivid_camera\", \"CaptureFrameSettings\")\n\n";
 
     ss << "general_settings_gen = ParameterGenerator()\n";
     ss << generalSettingsConfig(Zivid::Settings{}, "general_settings_gen");
-    ss << "general_settings_gen.generate(PACKAGE, \"zivid_ros_wrapper\", \"CaptureGeneralSettings\")\n";
+    ss << "general_settings_gen.generate(PACKAGE, \"zivid_camera\", \"CaptureGeneralSettings\")\n";
 
     writeCFGToFile(file_name, ss.str());
   }

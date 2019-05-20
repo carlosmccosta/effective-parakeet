@@ -1,7 +1,7 @@
-#include "zivid_ros_wrapper/zivid_ros_wrapper.hpp"
+#include "zivid_camera.hpp"
 #include "parse_settings.hpp"
-#include "zivid_ros_wrapper/BooleanState.h"
-#include "zivid_ros_wrapper/FloatState.h"
+#include "zivid_camera/BooleanState.h"
+#include "zivid_camera/FloatState.h"
 
 #include <sensor_msgs/point_cloud2_iterator.h>
 #include <dynamic_reconfigure/config_tools.h>
@@ -18,9 +18,9 @@
 namespace {
 
   template<typename ValueType> struct ValueTypeToRosType {};
-  template<> struct ValueTypeToRosType<bool> { using type = zivid_ros_wrapper::BooleanState; };
-  template<> struct ValueTypeToRosType<float> { using type = zivid_ros_wrapper::FloatState; };
-  template<> struct ValueTypeToRosType<double> { using type = zivid_ros_wrapper::FloatState; };
+  template<> struct ValueTypeToRosType<bool> { using type = zivid_camera::BooleanState; };
+  template<> struct ValueTypeToRosType<float> { using type = zivid_camera::FloatState; };
+  template<> struct ValueTypeToRosType<double> { using type = zivid_camera::FloatState; };
 
   template <typename ZividType>
   ros::ServiceServer createCameraStateService(ros::NodeHandle & nh, const Zivid::Camera &camera)
@@ -62,7 +62,7 @@ namespace {
   }
 }
 
-zivid_ros_wrapper::ZividRosWrapper::ZividRosWrapper()
+zivid_camera::ZividCamera::ZividCamera()
   : camera_reconfigure_handler_("~/camera_config")
   , camera_reconfigure_server_(camera_reconfigure_handler_)
   , capture_general_dynreconfig_node_("~/capture_general_settings")
@@ -119,7 +119,7 @@ zivid_ros_wrapper::ZividRosWrapper::ZividRosWrapper()
 
   ROS_INFO("Connected to camera");
   ROS_INFO("%s", camera_.toString().c_str());
-  camera_.setFrameCallback(boost::bind(&zivid_ros_wrapper::ZividRosWrapper::frameCallbackFunction, this, _1));
+  camera_.setFrameCallback(boost::bind(&zivid_camera::ZividCamera::frameCallbackFunction, this, _1));
 
   ROS_INFO("Setting up reconfigurable params");
   newSettings("frame_settings_1");
@@ -127,10 +127,10 @@ zivid_ros_wrapper::ZividRosWrapper::ZividRosWrapper()
   newSettings("frame_settings_3");
 
   camera_reconfigure_server_.setCallback(
-      boost::bind(&zivid_ros_wrapper::ZividRosWrapper::cameraReconfigureCallback, this, _1, _2));
+      boost::bind(&zivid_camera::ZividCamera::cameraReconfigureCallback, this, _1, _2));
 
   capture_general_dynreconfig_server_.setCallback(
-      boost::bind(&zivid_ros_wrapper::ZividRosWrapper::captureGeneralReconfigureCb, this, _1, _2));
+      boost::bind(&zivid_camera::ZividCamera::captureGeneralReconfigureCb, this, _1, _2));
 
 
 
@@ -139,32 +139,32 @@ zivid_ros_wrapper::ZividRosWrapper::ZividRosWrapper()
   pointcloud_pub_ = priv.advertise<sensor_msgs::PointCloud2>("pointcloud", 1);
 
   ROS_INFO("Registering pointcloud capture service at '%s'", "capture");
-  boost::function<bool(zivid_ros_wrapper::Capture::Request&, zivid_ros_wrapper::Capture::Response&)>
-      capture_callback_func = boost::bind(&zivid_ros_wrapper::ZividRosWrapper::captureServiceHandler, this, _1, _2);
+  boost::function<bool(zivid_camera::Capture::Request&, zivid_camera::Capture::Response&)>
+      capture_callback_func = boost::bind(&zivid_camera::ZividCamera::captureServiceHandler, this, _1, _2);
   capture_service_ = priv.advertiseService("capture", capture_callback_func);
 
   ROS_INFO("Registering pointcloud hdr capture service at '%s'", "hdr");
-  boost::function<bool(zivid_ros_wrapper::HDR::Request&, zivid_ros_wrapper::HDR::Response&)> hdr_callback_func =
-      boost::bind(&zivid_ros_wrapper::ZividRosWrapper::hdrCaptureServiceHandler, this, _1, _2);
+  boost::function<bool(zivid_camera::HDR::Request&, zivid_camera::HDR::Response&)> hdr_callback_func =
+      boost::bind(&zivid_camera::ZividCamera::hdrCaptureServiceHandler, this, _1, _2);
   hdr_service_ = priv.advertiseService("hdr", hdr_callback_func);
 
   setupCameraStateServices(camera_.state(), generated_servers_, priv, camera_);
 
   ROS_INFO("Registering camera_info service at '%s'", "camera_info");
-  boost::function<bool(zivid_ros_wrapper::CameraInfo::Request&, zivid_ros_wrapper::CameraInfo::Response&)>
+  boost::function<bool(zivid_camera::CameraInfo::Request&, zivid_camera::CameraInfo::Response&)>
       zivid_info_callback_func =
-          boost::bind(&zivid_ros_wrapper::ZividRosWrapper::cameraInfoServiceHandler, this, _1, _2);
+          boost::bind(&zivid_camera::ZividCamera::cameraInfoServiceHandler, this, _1, _2);
   zivid_info_service_ = priv.advertiseService("camera_info", zivid_info_callback_func);
 }
 
-zivid_ros_wrapper::ZividRosWrapper::~ZividRosWrapper()
+zivid_camera::ZividCamera::~ZividCamera()
 {
-  ROS_INFO("~ZividRosWrapper");
+  ROS_INFO("~ZividCamera");
   if (camera_mode_ == ZividCamera_Live)
     camera_.stopLive();
 }
 
-sensor_msgs::PointCloud2 zivid_ros_wrapper::ZividRosWrapper::zividFrameToPointCloud2(const Zivid::Frame& frame)
+sensor_msgs::PointCloud2 zivid_camera::ZividCamera::zividFrameToPointCloud2(const Zivid::Frame& frame)
 {
   Zivid::PointCloud point_cloud = frame.getPointCloud();
   sensor_msgs::PointCloud2 pointcloud_msg;
@@ -208,27 +208,27 @@ sensor_msgs::PointCloud2 zivid_ros_wrapper::ZividRosWrapper::zividFrameToPointCl
   return pointcloud_msg;
 }
 
-void zivid_ros_wrapper::ZividRosWrapper::newSettings(const std::string& name)
+void zivid_camera::ZividCamera::newSettings(const std::string& name)
 {
   dynamic_reconfigure_settings_list_.emplace_back();
   auto & reconfigure_settings = dynamic_reconfigure_settings_list_.back();
 
   reconfigure_settings.node_handle = ros::NodeHandle("~/" + name);
   reconfigure_settings.reconfigure_server =
-      std::make_shared<dynamic_reconfigure::Server<zivid_ros_wrapper::CaptureFrameSettingsConfig>>(reconfigure_settings.node_handle);
+      std::make_shared<dynamic_reconfigure::Server<zivid_camera::CaptureFrameSettingsConfig>>(reconfigure_settings.node_handle);
   reconfigure_settings.reconfigure_server->setCallback(
-      boost::bind(&zivid_ros_wrapper::ZividRosWrapper::settingsReconfigureCallback, this, _1, _2, name));
+      boost::bind(&zivid_camera::ZividCamera::settingsReconfigureCallback, this, _1, _2, name));
   reconfigure_settings.name = name;
   reconfigure_settings.settings = Zivid::Settings{};
 }
 
-void zivid_ros_wrapper::ZividRosWrapper::frameCallbackFunction(const Zivid::Frame& frame)
+void zivid_camera::ZividCamera::frameCallbackFunction(const Zivid::Frame& frame)
 {
   sensor_msgs::PointCloud2 pointcloud_msg = zividFrameToPointCloud2(frame);
   pointcloud_pub_.publish(pointcloud_msg);
 }
 
-void zivid_ros_wrapper::ZividRosWrapper::settingsReconfigureCallback(zivid_ros_wrapper::CaptureFrameSettingsConfig& config,
+void zivid_camera::ZividCamera::settingsReconfigureCallback(zivid_camera::CaptureFrameSettingsConfig& config,
                                                                      uint32_t /*level*/, const std::string& name)
 {
   ROS_INFO("Dynamic reconfigure of node '%s'", name.c_str());
@@ -255,19 +255,19 @@ void zivid_ros_wrapper::ZividRosWrapper::settingsReconfigureCallback(zivid_ros_w
   }
 }
 
-void zivid_ros_wrapper::ZividRosWrapper::cameraReconfigureCallback(zivid_ros_wrapper::ZividCameraConfig& config,
+void zivid_camera::ZividCamera::cameraReconfigureCallback(zivid_camera::ZividCameraConfig& config,
                                                                    uint32_t /*level*/)
 {
   ROS_INFO("Running camera dynamic reconfiguration");
   configureCameraMode(config.camera_mode);
 }
 
-void zivid_ros_wrapper::ZividRosWrapper::captureGeneralReconfigureCb(zivid_ros_wrapper::CaptureGeneralSettingsConfig& config, uint32_t level)
+void zivid_camera::ZividCamera::captureGeneralReconfigureCb(zivid_camera::CaptureGeneralSettingsConfig& config, uint32_t level)
 {
   ROS_INFO("%s", __func__);
 }
 
-void zivid_ros_wrapper::ZividRosWrapper::configureCameraMode(int camera_mode)
+void zivid_camera::ZividCamera::configureCameraMode(int camera_mode)
 {
   if (camera_mode != camera_mode_)
   {
@@ -287,8 +287,8 @@ void zivid_ros_wrapper::ZividRosWrapper::configureCameraMode(int camera_mode)
   }
 }
 
-bool zivid_ros_wrapper::ZividRosWrapper::captureServiceHandler(zivid_ros_wrapper::Capture::Request& /* req */,
-                                                               zivid_ros_wrapper::Capture::Response& res)
+bool zivid_camera::ZividCamera::captureServiceHandler(zivid_camera::Capture::Request& /* req */,
+                                                               zivid_camera::Capture::Response& res)
 {
   ROS_INFO("Received capture request");
 
@@ -305,8 +305,8 @@ bool zivid_ros_wrapper::ZividRosWrapper::captureServiceHandler(zivid_ros_wrapper
   }
 }
 
-bool zivid_ros_wrapper::ZividRosWrapper::hdrCaptureServiceHandler(zivid_ros_wrapper::HDR::Request& req,
-                                                                  zivid_ros_wrapper::HDR::Response& res)
+bool zivid_camera::ZividCamera::hdrCaptureServiceHandler(zivid_camera::HDR::Request& req,
+                                                                  zivid_camera::HDR::Response& res)
 {
   ROS_INFO("Received HDR capture request");
 
@@ -333,8 +333,8 @@ bool zivid_ros_wrapper::ZividRosWrapper::hdrCaptureServiceHandler(zivid_ros_wrap
   return false;
 }
 
-bool zivid_ros_wrapper::ZividRosWrapper::cameraInfoServiceHandler(zivid_ros_wrapper::CameraInfo::Request&,
-                                                                 zivid_ros_wrapper::CameraInfo::Response& res)
+bool zivid_camera::ZividCamera::cameraInfoServiceHandler(zivid_camera::CameraInfo::Request&,
+                                                                 zivid_camera::CameraInfo::Response& res)
 {
   res.model_name = camera_.modelName();
   res.camera_revision = camera_.revision().toString();

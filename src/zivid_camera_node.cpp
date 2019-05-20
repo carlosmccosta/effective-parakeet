@@ -1,14 +1,14 @@
 #include "ros/ros.h"
 
-#include "zivid_ros_wrapper/zivid_ros_wrapper.hpp"
+#include "zivid_camera.hpp"
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "zivid_ros_wrapper");
+  ros::init(argc, argv, "zivid_camera");
 
   try
   {
-    zivid_ros_wrapper::ZividRosWrapper wrapper;
+    zivid_camera::ZividCamera wrapper;
     ros::spin();
   }
   catch (const std::exception& e)
