@@ -1,5 +1,7 @@
 #!/bin/bash
 
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 export DEBIAN_FRONTEND=noninteractive
 
 function apt-yes {
@@ -13,7 +15,10 @@ apt-yes install \
     wget \
     clang-format \
     shellcheck \
+    python3-pip \
     || exit $?
+
+pip3 install -r $SCRIPT_DIR/requirements.txt || exit $?
 
 function install_www_deb {
     TMP_DIR=$(mktemp --tmpdir --directory install_www_deb-XXXX) || exit $?

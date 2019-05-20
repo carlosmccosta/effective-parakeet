@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-#TODO Find out where to put samples. They should probably not be delivered in the main
+# TODO Find out where to put samples. They should probably not be delivered in the main
 # package.
 
 import rospy
@@ -10,21 +10,25 @@ from zivid_camera.srv import *
 from std_msgs.msg import String
 from sensor_msgs.msg import PointCloud2
 
+
 def on_pointcloud(data):
     rospy.loginfo(rospy.get_caller_id() + "PointCloud received!")
 
+
 def capture_loop():
 
-    rospy.init_node('zivid_sample', anonymous=True)
+    rospy.init_node("zivid_sample", anonymous=True)
 
     rospy.Subscriber("/zivid_camera/pointcloud", PointCloud2, on_pointcloud)
 
-    capture = rospy.ServiceProxy('/zivid_camera/capture', Capture)
+    capture = rospy.ServiceProxy("/zivid_camera/capture", Capture)
 
-    #print(rosservice.rosservice_find("dynamic_reconfigure/Reconfigure"))
+    # print(rosservice.rosservice_find("dynamic_reconfigure/Reconfigure"))
 
-    frame_1_settings_client = dynamic_reconfigure.client.Client("/zivid_camera/frame_settings/frame_0")
-    #print(str(frame_1_settings_client.get_configuration()))
+    frame_1_settings_client = dynamic_reconfigure.client.Client(
+        "/zivid_camera/frame_settings/frame_0"
+    )
+    # print(str(frame_1_settings_client.get_configuration()))
 
     iris = 20
     exposure_time = 6500
@@ -35,12 +39,13 @@ def capture_loop():
 
         settings = {"iris": iris, "exposure_time": exposure_time}
         print("Updating camera settings: " + str(settings))
-        #frame_1_settings_client.update_configuration(settings)
+        # frame_1_settings_client.update_configuration(settings)
         print("Calling capture()")
         capture()
 
         rate.sleep()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     print("STARTING")
     capture_loop()
