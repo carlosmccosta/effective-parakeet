@@ -61,7 +61,6 @@ std::string convertSettingsPathToConfigPath(const std::string& path_string)
   return return_string;
 }
 
-
 // Template for type conversion. The Config files in the dynamic_reconfigure package in ros
 // only support the types bool, int, double and string. The Zivid settings use different
 // base types, and must therefore be converted. Each Zivid setting base type have a
@@ -97,7 +96,7 @@ public:
   {
     return settings_value;
   }
-  static constexpr const char * configValueType = "bool_t";
+  static constexpr const char* configValueType = "bool_t";
 };
 
 template <>
@@ -112,7 +111,7 @@ public:
   {
     return settings_value;
   }
-  static constexpr const char * configValueType = "double_t";
+  static constexpr const char* configValueType = "double_t";
 };
 
 template <>
@@ -128,7 +127,7 @@ public:
   {
     return ((double)settings_value.count()) / 1000000.0;
   }
-  static constexpr const char * configValueType = "double_t";
+  static constexpr const char* configValueType = "double_t";
 };
 
 template <>
@@ -143,7 +142,7 @@ public:
   {
     return (int)settings_value;
   }
-  static constexpr const char * configValueType = "int_t";
+  static constexpr const char* configValueType = "int_t";
 };
 
 // Template for reading a config message by looking up on a key, and return the corresponding

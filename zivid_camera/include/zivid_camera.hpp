@@ -9,7 +9,6 @@
 #include <zivid_camera/ZividCameraConfig.h>
 #include <zivid_camera/CaptureGeneralSettingsConfig.h>
 #include <zivid_camera/Capture.h>
-#include <zivid_camera/HDR.h>
 #include <zivid_camera/CameraInfo.h>
 
 #include <Zivid/Application.h>
@@ -31,7 +30,6 @@ private:
     std::string name;
     ros::NodeHandle node_handle;
     std::shared_ptr<dynamic_reconfigure::Server<zivid_camera::CaptureFrameSettingsConfig>> reconfigure_server;
-    //Zivid::Settings settings;
     zivid_camera::CaptureFrameSettingsConfig config;
   };
 
@@ -51,7 +49,6 @@ private:
   Zivid::Camera camera_;
   int camera_mode_;
   zivid_camera::CaptureGeneralSettingsConfig currentCaptureGeneralConfig_;
-
   ros::Publisher pointcloud_pub_;
   ros::ServiceServer capture_service_;
   std::vector<ros::ServiceServer> generated_servers_;
