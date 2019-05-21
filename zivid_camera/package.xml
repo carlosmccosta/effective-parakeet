@@ -2,20 +2,11 @@
 <package format="2">
   <name>zivid_camera</name>
   <version>0.1.0</version>
-  <description>The zivid_camera package</description>
-
+  <description>Driver for using the Zivid 3D cameras in ROS.</description>
   <maintainer email="support@zivid.com">Zivid</maintainer>
-
-
   <license>BSD3</license>
-
-
   <url type="website>">http://zivid.com</url>
-
-
   <author email="support@zivid.com">Zivid</author>
-
-
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>sensor_msgs</build_depend>
@@ -36,8 +27,4 @@
   <exec_depend>dynamic_reconfigure</exec_depend>
   <exec_depend>message_runtime</exec_depend>
   <test_depend>rosunit</test_depend>
-
-  <export>
-
-  </export>
 </package>
