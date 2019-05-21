@@ -144,6 +144,7 @@ include_directories(
 add_library(${PROJECT_NAME}
     src/zivid_camera.cpp
 )
+target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic -Werror)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -152,6 +153,7 @@ add_library(${PROJECT_NAME}
 # add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 
 add_executable(${PROJECT_NAME}_node src/main.cpp)
+target_compile_options(${PROJECT_NAME}_node PRIVATE -Wall -Wextra -pedantic -Werror)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

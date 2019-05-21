@@ -50,7 +50,7 @@ ros::ServiceServer createCameraStateService(ros::NodeHandle& nh, const Zivid::Ca
   ROS_INFO("Advertising cam state service for '%s' at '%s'", ZividType::name, servicePath.c_str());
 
   boost::function<bool(typename RosType::Request&, typename RosType::Response&)> callback =
-      [&camera](typename RosType::Request& req, typename RosType::Response& res) {
+      [&camera](typename RosType::Request&, typename RosType::Response& res) {
         res.value = camera.state().get<ZividType>().value();
         return true;
       };
@@ -65,7 +65,7 @@ auto setupCameraStateServices(const RootNode& rootNode, ListType& list, ros::Nod
     using ChildType = std::remove_const_t<std::remove_reference_t<decltype(childNode)>>;
     list.push_back(createCameraStateService<ChildType>(nh, camera));
   });
-};
+}
 
 sensor_msgs::PointField createPointField(std::string name, uint32_t offset, uint8_t datatype, uint32_t count)
 {
@@ -79,11 +79,12 @@ sensor_msgs::PointField createPointField(std::string name, uint32_t offset, uint
 }  // namespace
 
 zivid_camera::ZividCamera::ZividCamera()
-  : camera_reconfigure_handler_("~/camera_config")
+  : camera_mode_(0)
+  , frame_id_(0)
+  , camera_reconfigure_handler_("~/camera_config")
   , camera_reconfigure_server_(camera_reconfigure_handler_)
   , capture_general_dynreconfig_node_("~/capture_general_settings")
   , capture_general_dynreconfig_server_(capture_general_dynreconfig_node_)
-  , camera_mode_(0)
   , currentCaptureGeneralConfig_(zivid_camera::CaptureGeneralSettingsConfig::__getDefault__())
 {
   ROS_INFO("Zivid ROS driver version 0.0.1");  // todo get from cmake
@@ -243,8 +244,8 @@ void zivid_camera::ZividCamera::frameCallbackFunction(const Zivid::Frame& frame)
   pointcloud_pub_.publish(pointcloud_msg);
 }
 
-void zivid_camera::ZividCamera::settingsReconfigureCallback(zivid_camera::CaptureFrameSettingsConfig& config,
-                                                            uint32_t /*level*/, const std::string& name)
+void zivid_camera::ZividCamera::settingsReconfigureCallback(zivid_camera::CaptureFrameSettingsConfig& config, uint32_t,
+                                                            const std::string& name)
 {
   ROS_INFO("Dynamic reconfigure of node '%s'", name.c_str());
 
@@ -258,14 +259,14 @@ void zivid_camera::ZividCamera::settingsReconfigureCallback(zivid_camera::Captur
   }
 }
 
-void zivid_camera::ZividCamera::cameraReconfigureCallback(zivid_camera::ZividCameraConfig& config, uint32_t /*level*/)
+void zivid_camera::ZividCamera::cameraReconfigureCallback(zivid_camera::ZividCameraConfig& config, uint32_t)
 {
   ROS_INFO("%s", __func__);
   configureCameraMode(config.camera_mode);
 }
 
 void zivid_camera::ZividCamera::captureGeneralReconfigureCb(zivid_camera::CaptureGeneralSettingsConfig& config,
-                                                            uint32_t level)
+                                                            uint32_t)
 {
   ROS_INFO("%s", __func__);
   currentCaptureGeneralConfig_ = config;
@@ -294,8 +295,7 @@ void zivid_camera::ZividCamera::configureCameraMode(int camera_mode)
   }
 }
 
-bool zivid_camera::ZividCamera::captureServiceHandler(zivid_camera::Capture::Request& /* req */,
-                                                      zivid_camera::Capture::Response& res)
+bool zivid_camera::ZividCamera::captureServiceHandler(zivid_camera::Capture::Request&, zivid_camera::Capture::Response&)
 {
   ROS_INFO("Received capture request");
 

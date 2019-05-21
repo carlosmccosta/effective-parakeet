@@ -5,7 +5,7 @@
 #include <dynamic_reconfigure/Config.h>
 #include <dynamic_reconfigure/Reconfigure.h>
 
-void onPointCloud(const sensor_msgs::PointCloud2ConstPtr& input)
+void onPointCloud(const sensor_msgs::PointCloud2ConstPtr&)
 {
   ROS_INFO("Got a pointcloud!!");
 }

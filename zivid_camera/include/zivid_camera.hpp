@@ -45,20 +45,21 @@ private:
   bool captureServiceHandler(zivid_camera::Capture::Request& req, zivid_camera::Capture::Response& res);
   bool cameraInfoServiceHandler(zivid_camera::CameraInfo::Request& req, zivid_camera::CameraInfo::Response& res);
 
-  Zivid::Application zivid_;
-  Zivid::Camera camera_;
   int camera_mode_;
-  zivid_camera::CaptureGeneralSettingsConfig currentCaptureGeneralConfig_;
-  ros::Publisher pointcloud_pub_;
-  ros::ServiceServer capture_service_;
-  std::vector<ros::ServiceServer> generated_servers_;
-  ros::ServiceServer zivid_info_service_;
+  int frame_id_;
   ros::NodeHandle camera_reconfigure_handler_;
   dynamic_reconfigure::Server<zivid_camera::ZividCameraConfig> camera_reconfigure_server_;
   ros::NodeHandle capture_general_dynreconfig_node_;
   dynamic_reconfigure::Server<zivid_camera::CaptureGeneralSettingsConfig> capture_general_dynreconfig_server_;
+  zivid_camera::CaptureGeneralSettingsConfig currentCaptureGeneralConfig_;
+
+  ros::Publisher pointcloud_pub_;
+  ros::ServiceServer capture_service_;
+  std::vector<ros::ServiceServer> generated_servers_;
+  ros::ServiceServer zivid_info_service_;
   std::vector<DynamicReconfigureSettings> dynamic_reconfigure_settings_list_;
-  int frame_id_;
+  Zivid::Application zivid_;
+  Zivid::Camera camera_;
 };
 }  // namespace zivid_camera
 

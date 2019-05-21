@@ -27,7 +27,7 @@ std::string convertSettingsPathToConfigPath(const std::string& path_string)
 {
   std::string return_string;
 
-  for (int i = 0; i < path_string.size(); i++)
+  for (std::size_t i = 0; i < path_string.size(); i++)
   {
     char c = path_string[i];
     bool insert_underscore = false;
