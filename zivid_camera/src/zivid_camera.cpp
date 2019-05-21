@@ -7,6 +7,7 @@
 #include <dynamic_reconfigure/config_tools.h>
 
 #include <Zivid/HDR.h>
+#include <Zivid/Firmware.h>
 
 #include <boost/algorithm/string.hpp>
 
@@ -95,7 +96,7 @@ zivid_camera::ZividCamera::ZividCamera()
   ros::NodeHandle priv("~");
 
   // First setup necessary parameters
-  std::string serial_number = "";
+  std::string serial_number;
   priv.param<std::string>("serial_number", serial_number, "");
 
   bool test_mode_enabled;
@@ -107,38 +108,58 @@ zivid_camera::ZividCamera::ZividCamera()
     ROS_INFO("Using test file %s", test_mode_file.c_str());
   }
 
-  if (zivid_.cameras().empty())
-  {
-    ROS_ERROR("No Zivid cameras connected");
-    throw std::runtime_error("No Zivid Cameras connected");
-  }
-
   if (!test_mode_enabled)
   {
-    if (serial_number == "")
+    auto cameras = zivid_.cameras();
+    if (cameras.empty())
     {
-      ROS_INFO("Connecting to first available Zivid camera ...");
-      camera_ = zivid_.connectCamera();
+      throw std::runtime_error("No cameras found");
     }
-    else if (serial_number.find("sn") == 0)
+    else if (serial_number.empty())
     {
-      const auto sn = serial_number.substr(2);
-      ROS_INFO("Connecting to Zivid camera with serial number %s ...", sn.c_str());
-      camera_ = zivid_.connectCamera(Zivid::SerialNumber(sn));
+      ROS_INFO("Selecting first camera");
+      camera_ = cameras[0];
     }
     else
-      ROS_ERROR("The format of the serial number is not recognized. It should start with sn in ROS because of ROS "
-                "param conversion problems");
+    {
+      if (serial_number.find("sn") != 0)
+      {
+        throw std::runtime_error("Unrecognized serial number. The serial number must begin with 'sn'.");
+      }
+
+      const auto sn = serial_number.substr(2);
+      camera_ = [&]() {
+        ROS_INFO("Searching for camera with serial number %s ...", sn.c_str());
+        for (auto& c : cameras)
+        {
+          if (c.serialNumber() == Zivid::SerialNumber(sn))
+            return c;
+        }
+        throw std::runtime_error("No camera found with serial number " + sn);
+      }();
+    }
+
+    if (!Zivid::Firmware::isUpToDate(camera_))
+    {
+      ROS_INFO("The camera firmware is not up-to-date, starting update");
+      Zivid::Firmware::update(camera_, [](double progress, const std::string& state) {
+        ROS_INFO("  [%.0f%%] %s", progress, state.c_str());
+      });
+      ROS_INFO("Firmware update completed");
+    }
   }
   else
   {
     ROS_INFO("Test mode enabled");
-    ROS_INFO("Connecting to file camera '%s' ...", test_mode_file.c_str());
+    ROS_INFO("Creating file camera '%s'", test_mode_file.c_str());
     camera_ = zivid_.createFileCamera(test_mode_file);
   }
 
-  ROS_INFO("Connected to camera");
   ROS_INFO("%s", camera_.toString().c_str());
+  ROS_INFO("Connecting to camera ...");
+  camera_.connect();
+  ROS_INFO("Connected to camera");
+
   camera_.setFrameCallback(boost::bind(&zivid_camera::ZividCamera::frameCallbackFunction, this, _1));
 
   ROS_INFO("Setting up reconfigurable params");
