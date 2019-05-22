@@ -25,6 +25,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_ros
   dynamic_reconfigure
   message_generation
+  image_transport
 )
 
 find_package(Zivid COMPONENTS Core REQUIRED)

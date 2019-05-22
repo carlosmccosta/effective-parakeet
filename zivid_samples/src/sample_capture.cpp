@@ -24,23 +24,25 @@ int main(int argc, char** argv)
    * will exit when Ctrl-C is pressed, or the node is shutdown by the master.
    */
 
-  ros::Rate loop_rate(1);
+  ros::Rate loop_rate(2);
 
-  int iris = 22;
+  // int iris = 22;
   while (ros::ok())
   {
     std::cout << "Updating camera settings" << std::endl;
     zivid_camera::CaptureFrameSettingsConfig frameSettingsCfg =
         zivid_camera::CaptureFrameSettingsConfig::__getDefault__();
-    frameSettingsCfg.iris = iris++;
-    frameSettingsCfg.exposure_time = 0.100;
-
-    dynamic_reconfigure::Config config;
-    frameSettingsCfg.__toMessage__(config);
+    frameSettingsCfg.iris = 22;
+    frameSettingsCfg.exposure_time = 0.02;
 
     dynamic_reconfigure::Reconfigure reconfig;
-    reconfig.request.config = config;
+    frameSettingsCfg.__toMessage__(reconfig.request.config);
+    ros::service::call("/zivid_camera/frame_settings/frame_0/set_parameters", reconfig);
+
+    frameSettingsCfg.iris = 0;
+    frameSettingsCfg.__toMessage__(reconfig.request.config);
     ros::service::call("/zivid_camera/frame_settings/frame_1/set_parameters", reconfig);
+    ros::service::call("/zivid_camera/frame_settings/frame_2/set_parameters", reconfig);
 
     std::cout << "Calling capture!" << std::endl;
     zivid_camera::Capture capture;
