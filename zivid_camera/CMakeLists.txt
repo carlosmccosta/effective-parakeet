@@ -76,7 +76,7 @@ target_link_libraries(${PROJECT_NAME}_settings_generator Zivid::Core)
 # )
 
 generate_dynamic_reconfigure_options(
-    cfg/ZividCamera.cfg
+    #cfg/ZividCamera.cfg
     ${CMAKE_CURRENT_BINARY_DIR}/ZividSettings.cfg
 )
 

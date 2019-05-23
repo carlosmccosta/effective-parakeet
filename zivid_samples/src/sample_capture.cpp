@@ -1,13 +1,13 @@
-#include "ros/ros.h"
+#include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
-#include <zivid_camera/CaptureFrameSettingsConfig.h>
+#include <zivid_camera/CaptureFrameConfig.h>
 #include <zivid_camera/Capture.h>
 #include <dynamic_reconfigure/Config.h>
 #include <dynamic_reconfigure/Reconfigure.h>
 
 void onPointCloud(const sensor_msgs::PointCloud2ConstPtr&)
 {
-  ROS_INFO("Got a pointcloud!!");
+  ROS_INFO("PointCloud received!");
 }
 
 int main(int argc, char** argv)
@@ -16,7 +16,7 @@ int main(int argc, char** argv)
 
   ros::NodeHandle n;
 
-  ros::Subscriber sub = n.subscribe("/zivid_camera/pointcloud", 10, onPointCloud);
+  ros::Subscriber sub = n.subscribe("/zivid_camera/point_cloud", 10, onPointCloud);
 
   /**
    * ros::spin() will enter a loop, pumping callbacks.  With this version, all
@@ -24,32 +24,27 @@ int main(int argc, char** argv)
    * will exit when Ctrl-C is pressed, or the node is shutdown by the master.
    */
 
-  ros::Rate loop_rate(2);
+  ROS_INFO("Updating camera settings");
+  zivid_camera::CaptureFrameConfig frameCfg = zivid_camera::CaptureFrameConfig::__getDefault__();
+  frameCfg.iris = 22;
+  frameCfg.exposure_time = 0.02;
 
-  // int iris = 22;
+  dynamic_reconfigure::Reconfigure reconfig;
+  frameCfg.__toMessage__(reconfig.request.config);
+  ros::service::call("/zivid_camera/capture_frame/frame_0/set_parameters", reconfig);
+
+  frameCfg.iris = 0;
+  frameCfg.__toMessage__(reconfig.request.config);
+  ros::service::call("/zivid_camera/capture_frame/frame_1/set_parameters", reconfig);
+  ros::service::call("/zivid_camera/capture_frame/frame_2/set_parameters", reconfig);
+
+  ros::Rate loop_rate(2);
   while (ros::ok())
   {
-    std::cout << "Updating camera settings" << std::endl;
-    zivid_camera::CaptureFrameSettingsConfig frameSettingsCfg =
-        zivid_camera::CaptureFrameSettingsConfig::__getDefault__();
-    frameSettingsCfg.iris = 22;
-    frameSettingsCfg.exposure_time = 0.02;
-
-    dynamic_reconfigure::Reconfigure reconfig;
-    frameSettingsCfg.__toMessage__(reconfig.request.config);
-    ros::service::call("/zivid_camera/frame_settings/frame_0/set_parameters", reconfig);
-
-    frameSettingsCfg.iris = 0;
-    frameSettingsCfg.__toMessage__(reconfig.request.config);
-    ros::service::call("/zivid_camera/frame_settings/frame_1/set_parameters", reconfig);
-    ros::service::call("/zivid_camera/frame_settings/frame_2/set_parameters", reconfig);
-
-    std::cout << "Calling capture!" << std::endl;
+    ROS_INFO("Capturing");
     zivid_camera::Capture capture;
     ros::service::call("/zivid_camera/capture", capture);
-
     ros::spinOnce();
-
     loop_rate.sleep();
   }
 

@@ -85,7 +85,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.0007999999797903001
       Style: Flat Squares
-      Topic: /zivid_camera/pointcloud
+      Topic: /zivid_camera/point_cloud
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true

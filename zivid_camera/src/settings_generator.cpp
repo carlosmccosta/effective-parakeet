@@ -171,19 +171,6 @@ std::string generalSettingsConfig(const ZividSetting& zividSetting, const std::s
   return "";
 }
 
-/*
-
-
-  class ZividFrameSettingsAdapter
-  {
-    public:
-      void populate(Zivid::Settings &);
-    private:
-
-  }
-
-*/
-
 void writeCFGToFile(const std::string& file_name, const std::string& text)
 {
   std::ofstream cfg_file;
@@ -205,13 +192,13 @@ void writeCFGFile(void)
         "roslib.load_manifest(PACKAGE);\n"
         "from dynamic_reconfigure.parameter_generator_catkin import *\n\n";
 
-  ss << "frame_settings_gen = ParameterGenerator()\n";
-  ss << frameSettingsConfig(Zivid::Settings{}, "frame_settings_gen");
-  ss << "frame_settings_gen.generate(PACKAGE, \"zivid_camera\", \"CaptureFrameSettings\")\n\n";
+  ss << "capture_general_gen = ParameterGenerator()\n";
+  ss << generalSettingsConfig(Zivid::Settings{}, "capture_general_gen");
+  ss << "capture_general_gen.generate(PACKAGE, \"zivid_camera\", \"CaptureGeneral\")\n";
 
-  ss << "general_settings_gen = ParameterGenerator()\n";
-  ss << generalSettingsConfig(Zivid::Settings{}, "general_settings_gen");
-  ss << "general_settings_gen.generate(PACKAGE, \"zivid_camera\", \"CaptureGeneralSettings\")\n";
+  ss << "capure_frame_gen = ParameterGenerator()\n";
+  ss << frameSettingsConfig(Zivid::Settings{}, "capure_frame_gen");
+  ss << "capure_frame_gen.generate(PACKAGE, \"zivid_camera\", \"CaptureFrame\")\n\n";
 
   writeCFGToFile(file_name, ss.str());
 }
