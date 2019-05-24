@@ -21,12 +21,13 @@ Follow guide at http://wiki.ros.org/ROS/Installation to install ROS Melodic.
 Also install catkin.
 
 ```
-sudo apt-get install python-catkin-tools
+sudo apt update
+sudo apt install python-catkin-tools
 ```
 
 #### Git
 ```
-sudo apt-get install git
+sudo apt install git
 ```
 
 #### OpenCL
@@ -44,8 +45,13 @@ the camera is detected.
 
 #### Setting up the catkin workspace
 
-If you have not setup your catkin workspace this needs to be done first.
-Follow the guide at http://wiki.ros.org/catkin/Tutorials/create_a_workspace.
+If you have not setup your catkin workspace, this needs to be done first.
+```
+source /opt/ros/melodic/setup.bash
+mkdir -p ~/catkin_ws/src
+cd ~/catkin_ws
+catkin build
+```
 
 Clone the Zivid ROS project into the src/ directory.
 ```
