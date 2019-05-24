@@ -30,14 +30,6 @@ public:
   ~ZividCamera();
 
 private:
-  struct DynamicReconfigureSettings
-  {
-    std::string name;
-    ros::NodeHandle node_handle;
-    std::shared_ptr<dynamic_reconfigure::Server<zivid_camera::CaptureFrameConfig>> reconfigure_server;
-    zivid_camera::CaptureFrameConfig config;
-  };
-
   void frameCallbackFunction(Zivid::Frame frame);
   void settingsReconfigureCallback(zivid_camera::CaptureFrameConfig& config, uint32_t level, const std::string& name);
   void newSettings(const std::string& name);
@@ -53,6 +45,14 @@ private:
   sensor_msgs::Image frameToDepthImage(const Zivid::Frame& frame);
   sensor_msgs::Image createNewImage(const Zivid::PointCloud& point_cloud, const std::string& encoding,
                                     std::size_t step);
+
+  struct DynamicReconfigureFrameConfig
+  {
+    using CfgType = zivid_camera::CaptureFrameConfig;
+    std::string name;
+    std::shared_ptr<dynamic_reconfigure::Server<CfgType>> reconfigure_server;
+    CfgType config;
+  };
 
   // int camera_mode_;
   int frame_id_;
@@ -73,7 +73,7 @@ private:
   ros::ServiceServer capture_service_;
   std::vector<ros::ServiceServer> generated_servers_;
   ros::ServiceServer zivid_info_service_;
-  std::vector<DynamicReconfigureSettings> dynamic_reconfigure_settings_list_;
+  std::vector<DynamicReconfigureFrameConfig> frame_configs_;
   Zivid::Application zivid_;
   Zivid::Camera camera_;
 };

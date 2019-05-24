@@ -169,10 +169,11 @@ zivid_camera::ZividCamera::ZividCamera()
   camera_.setFrameCallback(boost::bind(&zivid_camera::ZividCamera::frameCallbackFunction, this, _1));
 
   ROS_INFO("Setting up reconfigurable params");
-  // TODO dynamically grow/shrink this list.
-  newSettings("capture_frame/frame_0");
-  // newSettings("capture_frame/frame_1");
-  // newSettings("capture_frame/frame_2");
+  // TODO be able to configure num frames
+  for (int i = 0; i < 10; i++)
+  {
+    newSettings("capture_frame/frame_" + std::to_string(i));
+  }
 
   // camera_reconfigure_server_.setCallback(
   //    boost::bind(&zivid_camera::ZividCamera::cameraReconfigureCallback, this, _1, _2));
@@ -213,19 +214,17 @@ zivid_camera::ZividCamera::~ZividCamera()
 
 void zivid_camera::ZividCamera::newSettings(const std::string& name)
 {
-  dynamic_reconfigure_settings_list_.emplace_back();
-  auto& reconfigure_settings = dynamic_reconfigure_settings_list_.back();
+  frame_configs_.emplace_back();
+  auto& frame_config = frame_configs_.back();
 
-  reconfigure_settings.name = name;
-  reconfigure_settings.node_handle = ros::NodeHandle("~/" + name);
-  reconfigure_settings.reconfigure_server =
-      std::make_shared<dynamic_reconfigure::Server<zivid_camera::CaptureFrameConfig>>(reconfigure_settings.node_handle);
-  reconfigure_settings.reconfigure_server->setCallback(
+  frame_config.name = name;
+  frame_config.reconfigure_server =
+      std::make_shared<dynamic_reconfigure::Server<zivid_camera::CaptureFrameConfig>>(ros::NodeHandle("~/" + name));
+
+  // Note that setting the callback below causes the server object to invoke the callback once
+  // with the current configuration.
+  frame_config.reconfigure_server->setCallback(
       boost::bind(&zivid_camera::ZividCamera::settingsReconfigureCallback, this, _1, _2, name));
-
-  // This is necessary since the default constructed config object does not set the members
-  // to their default values. See https://github.com/ros/dynamic_reconfigure/issues/33.
-  reconfigure_settings.config = zivid_camera::CaptureFrameConfig::__getDefault__();
 }
 
 void zivid_camera::ZividCamera::frameCallbackFunction(Zivid::Frame frame)
@@ -236,14 +235,14 @@ void zivid_camera::ZividCamera::frameCallbackFunction(Zivid::Frame frame)
 void zivid_camera::ZividCamera::settingsReconfigureCallback(zivid_camera::CaptureFrameConfig& config, uint32_t,
                                                             const std::string& name)
 {
-  ROS_INFO("Dynamic reconfigure of node '%s'", name.c_str());
+  ROS_INFO("%s name='%s'", __func__, name.c_str());
 
-  for (auto& reconfigure_settings : dynamic_reconfigure_settings_list_)
+  for (auto& frame_config : frame_configs_)
   {
-    if (reconfigure_settings.name == name)
+    if (frame_config.name == name)
     {
-      ROS_INFO("You updated setting %s", reconfigure_settings.name.c_str());
-      reconfigure_settings.config = config;
+      ROS_INFO("Frame config '%s' updated", frame_config.name.c_str());
+      frame_config.config = config;
     }
   }
 }
@@ -313,15 +312,13 @@ bool zivid_camera::ZividCamera::captureServiceHandler(zivid_camera::Capture::Req
     baseSetting.set(
         Zivid::Settings::Filters::Outlier::Threshold{ currentCaptureGeneralConfig_.filters_outlier_threshold });
 
-    for (auto& reconfigure_settings : dynamic_reconfigure_settings_list_)
+    for (const auto& frame_config : frame_configs_)
     {
-      const auto& config = reconfigure_settings.config;
+      const auto& config = frame_config.config;
 
-      // if (config.iris > 0)
+      if (config.enabled)
       {
-        ROS_INFO("Adding frame '%s'", reconfigure_settings.name.c_str());
         Zivid::Settings s{ baseSetting };
-
         // TODO autogen this.
         s.set(Zivid::Settings::Iris{ static_cast<std::size_t>(config.iris) });
         s.set(Zivid::Settings::ExposureTime{ std::chrono::duration_cast<std::chrono::microseconds>(
@@ -341,7 +338,7 @@ bool zivid_camera::ZividCamera::captureServiceHandler(zivid_camera::Capture::Req
       for (const auto& s : settings)
       {
         camera_.setSettings(s);
-        ROS_INFO("Calling capture with settings: %s", camera_.settings().toString().c_str());
+        ROS_DEBUG("Calling capture with settings: %s", camera_.settings().toString().c_str());
         frames.emplace_back(camera_.capture());
       }
 
@@ -360,7 +357,7 @@ bool zivid_camera::ZividCamera::captureServiceHandler(zivid_camera::Capture::Req
     }
     else
     {
-      ROS_ERROR("Capture called with 0 active frames!");
+      ROS_ERROR("Capture called with 0 enabled frames!");
     }
     return false;
   }

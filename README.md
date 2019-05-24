@@ -4,9 +4,7 @@
 
 THIS WRAPPER IS WORK IN PROGRESS. IT WILL CHANGE BEFORE FINAL RELEASE.
 
-CURRENT KNOWN CAVEATS/DEFECTS:
-- It is only possible to capture 1 frame at a time (HDR is not supported yet).
-- Only Ubuntu 18.04 with ROS Melodic has been tested.
+**Only Ubuntu 18.04 with ROS Melodic has been tested.**
 
 This is the official ROS package for Zivid 3D cameras. This enables usage of Zivid cameras as
 a node in ROS. Read more about Zivid at https://www.zivid.com/.
@@ -167,7 +165,61 @@ The capture settings available in the `zivid_camera` node matches the settings i
 To become more familiar with the available settings in Zivid, run Zivid Studio or visit
 the [API reference](http://www.zivid.com/software/api-documentation) of the `Settings` class.
 
-**Currently only single capture is supported. HDR is not supported.**
+The `zivid_camera` node supports both single-capture and HDR-capture. For more information about
+HDR capture, visit our [knowledge base](https://help.zivid.com) and search for HDR.
+
+The available capture settings are split into subtrees:
+
+```
+/zivid_camera
+    /capture_frame
+        /frame_0
+            ...
+        /frame_1
+            ...
+        ...
+        /frame_9
+            ...
+    /capture_general
+        ...
+```
+
+`/zivid/capture_general` contains common settings for all frames (as of Core version 1.3 this is all the
+filters and color balance). `/zivid_camera/frame_settings/frame_<n>/` contains settings for an individual
+frame. `<n>` can be 0 to 9 for a total of 10 configured frames.
+
+`/zivid_camera/frame_settings/frame_<n>/enabled` controls if the frame `<n>` is enabled. When the
+`/zivid_camera/capture/` service is invoked, if just one frame is enabled, the camera will
+perform a single-capture. If more than one frame is enabled, the camera will perform an HDR capture.
+
+By default all the frames are enabled=false. In order to capture a point cloud at least one frame
+needs to be enabled.
+
+### Dynamic parameters
+
+`/zivid_camera/capture_general/*`
+> The settings here applies to all the frames. Contains filters and color balance.
+
+TODO: extend documentation.
+
+`/zivid_camera/frame_settings/frame_<n>/enabled (bool)`
+> Controls if the frame `<n>` is enabled. When the frame is enabled it will be included
+> in /capture. The default value is false.
+
+`/zivid_camera/frame_settings/frame_<n>/bidirectional`
+>
+
+`/zivid_camera/frame_settings/frame_<n>/brightness`
+>
+
+`/zivid_camera/frame_settings/frame_<n>/exposure_time`
+>
+
+`/zivid_camera/frame_settings/frame_<n>/gain`
+>
+
+`/zivid_camera/frame_settings/frame_<n>/iris`
+>
 
 ## Launch Parameters
 
@@ -180,9 +232,10 @@ how to use the Zivid camera in ROS. These samples can be used as a starting poin
 
 ### Sample Capture
 
+This sample performs a single-capture 3 times per second repeatedly.
 
-This sample shows how to configure the capture settings using dynamic_reconfigure, how to subscribe to the
-`zivid_camera/point_cloud` topic, and then repeatedly invoking the `/zivid_camera/capture` service.
+This sample shows how to configure the capture settings using `dynamic_reconfigure`, how to subscribe
+to the `zivid_camera/point_cloud` topic, and how to invoke the capture service.
 
 [C++](./zivid_samples/src/sample_capture.cpp)
 ```

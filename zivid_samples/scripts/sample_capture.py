@@ -23,15 +23,13 @@ def capture_loop():
 
     capture = rospy.ServiceProxy("/zivid_camera/capture", Capture)
 
-    frame_1_config_client = dynamic_reconfigure.client.Client(
+    frame_0_config_client = dynamic_reconfigure.client.Client(
         "/zivid_camera/capture_frame/frame_0"
     )
 
-    iris = 22
-    exposure_time = 0.02
-    settings = {"iris": iris, "exposure_time": exposure_time}
-    rospy.loginfo("Updating camera settings: " + str(settings))
-    frame_1_config_client.update_configuration(settings)
+    rospy.loginfo("Enable and configure the first frame")
+    settings = {"enabled": True, "iris": 22, "exposure_time": 0.02}
+    frame_0_config_client.update_configuration(settings)
 
     rate = rospy.Rate(3)
     while not rospy.is_shutdown():

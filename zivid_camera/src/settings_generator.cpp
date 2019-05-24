@@ -197,6 +197,8 @@ void writeCFGFile(void)
   ss << "capture_general_gen.generate(PACKAGE, \"zivid_camera\", \"CaptureGeneral\")\n";
 
   ss << "capure_frame_gen = ParameterGenerator()\n";
+  ss << "capure_frame_gen.add(\"enabled\", bool_t, 0, \"When frame is enabled it will be included in captures\", "
+        "False)\n";
   ss << frameSettingsConfig(Zivid::Settings{}, "capure_frame_gen");
   ss << "capure_frame_gen.generate(PACKAGE, \"zivid_camera\", \"CaptureFrame\")\n\n";
 
