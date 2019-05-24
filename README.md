@@ -18,7 +18,13 @@ This package supports Ubuntu 18.04 and ROS version Melodic Morenia.
 ### Prerequisites
 
 #### ROS
-Follow guide at http://wiki.ros.org/ROS/Installation to install ROS.
+Follow guide at http://wiki.ros.org/ROS/Installation to install ROS Melodic.
+
+Also install catkin.
+
+```
+sudo apt-get install python-catkin-tools
+```
 
 #### Git
 ```
@@ -27,17 +33,38 @@ sudo apt-get install git
 
 #### OpenCL
 An OpenCL 1.2 compatible GPU and OpenCL drivers are required by the Zivid Core library.
-Follow guide at X to install OpenCL.
+Follow guide at https://help.zivid.com to install OpenCL.
 
 #### Zivid Core Library
-- Download and install the Zivid Core debian package from [our webpage](https://www.zivid.com/downloads).
-- Optional: Install the Zivid Tools and Zivid Studio packages.
+Download and install the Zivid Core debian package from [our webpage](https://www.zivid.com/downloads).
 
-### Download and build the Zivid ROS wrapper
+Optionally install the Zivid Tools and Zivid Studio packages as well. They are not required by the ROS
+driver but can be useful for testing the camera and troubleshooting.
+
+### Building Zivid ROS wrapper
+
+#### Setting up the catkin workspace
+
+If you have not setup your catkin workspace before, this needs to be done first.
+Follow the guide at http://wiki.ros.org/catkin/Tutorials/create_a_workspace.
+
+Clone the Zivid ROS project into the src/ directory.
 ```
 cd ~/catkin_ws/src
-git clone git@github.com:nedrebo/effective-parakeet.git
+git clone https://github.com/nedrebo/effective-parakeet.git
+```
+
+Install dependencies.
+```
 cd ~/catkin_ws
+apt update
+rosdep update
+rosdep install --from-paths src --ignore-src -r -y
+```
+
+Finally, build the zivid_camera and zivid_sample packages.
+
+```
 catkin build
 ```
 
@@ -78,7 +105,7 @@ rosrun zivid_samples zivid_samples_capture
 The `zivid_samples_capture` node will first configure the capture settings of the camera and then
 trigger captures repeatedly twice a second.
 
-If everything is working so far, the camera will now capture approximately two times per second.
+If everything is working so far, the camera will now capture approximately 3 times per second.
 You can visualize the point cloud, color image and depth image using rviz.
 
 ```
@@ -124,7 +151,7 @@ The zivid_camera node publishes on the following ROS topics.
 > RGB image. The image is encoded as "rgb8".
 
 `/zivid_camera/depth/image (sensor_msgs/Image)`
-> Depth image. Each pixel contains the z-value (in meters). The image is encoded as 32-bit floats.
+> Depth image. Each pixel contains the z-value (in meters). The image is encoded as 32-bit float.
 
 ## Configuration of capture settings
 
@@ -138,7 +165,7 @@ rosrun rqt_reconfigure rqt_reconfigure
 
 The capture settings available in the `zivid_camera` node matches the settings in the Zivid API.
 To become more familiar with the available settings in Zivid, run Zivid Studio or visit
-the [API reference](http://www.zivid.com/software/api-documentation) for the `Settings` class.
+the [API reference](http://www.zivid.com/software/api-documentation) of the `Settings` class.
 
 **Currently only single capture is supported. HDR is not supported.**
 
@@ -153,11 +180,21 @@ how to use the Zivid camera in ROS. These samples can be used as a starting poin
 
 ### Sample Capture
 
-[C++](./zivid_samples/src/sample_capture.cpp) [Python](./zivid_samples/scripts/sample_capture.py)
 
 This sample shows how to configure the capture settings using dynamic_reconfigure, how to subscribe to the
-`zivid_camera/point_cloud` topic, and then repeatedly invoking the `/zivid_camera/capture` service
-twice a second.
+`zivid_camera/point_cloud` topic, and then repeatedly invoking the `/zivid_camera/capture` service.
+
+[C++](./zivid_samples/src/sample_capture.cpp)
+```
+cd ~/catkin_ws && source devel/setup.bash
+rosrun zivid_samples zivid_samples_capture
+```
+
+[Python](./zivid_samples/scripts/sample_capture.py)
+```
+cd ~/catkin_ws && source devel/setup.bash
+rosrun zivid_samples scripts/sample_capture.py
+```
 
 ## FAQ
 
