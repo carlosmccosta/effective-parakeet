@@ -1,8 +1,8 @@
-# ROS wrapper for Zivid
+# ROS driver for Zivid
 
 [![Build Status](https://travis-ci.org/nedrebo/effective-parakeet.svg?branch=master)](https://travis-ci.org/nedrebo/effective-parakeet)
 
-THIS WRAPPER IS WORK IN PROGRESS. IT WILL CHANGE BEFORE FINAL RELEASE.
+THIS DRIVER IS WORK IN PROGRESS. IT WILL CHANGE BEFORE FINAL RELEASE.
 
 **Only Ubuntu 18.04 with ROS Melodic has been tested.**
 
@@ -37,13 +37,14 @@ Follow guide at https://help.zivid.com to install OpenCL.
 Download and install the Zivid Core debian package from [our webpage](https://www.zivid.com/downloads).
 
 Optionally install the Zivid Tools and Zivid Studio packages as well. They are not required by the ROS
-driver but can be useful for testing the camera and troubleshooting.
+driver but can be useful for testing that your system has been configured correctly and that
+the camera is detected.
 
-### Building Zivid ROS wrapper
+### Building Zivid ROS driver
 
 #### Setting up the catkin workspace
 
-If you have not setup your catkin workspace before, this needs to be done first.
+If you have not setup your catkin workspace this needs to be done first.
 Follow the guide at http://wiki.ros.org/catkin/Tutorials/create_a_workspace.
 
 Clone the Zivid ROS project into the src/ directory.
@@ -70,9 +71,8 @@ catkin build
 
 Connect the Zivid Camera to your USB3 port on your PC. You can use the ZividListCameras tool
 available in the zivid-tools package to confirm that your system has been configured correctly, and
-that the camera is discovered by your PC.
-
-You can also open Zivid Studio and connect to the camera. Close Zivid Studio before continuing with
+that the camera is discovered by your PC. You can also open Zivid Studio and connect to the camera.
+Close Zivid Studio before continuing with
 the rest of this guide. If the camera is not found, try our troubleshooting wiki at https://help.zivid.com.
 
 Start roscore
@@ -91,7 +91,7 @@ source devel/setup.bash
 rosrun zivid_camera zivid_camera_node
 ```
 
-Check the logger output from the node to confirm that it finds and connects
+Check the output from the node to confirm that it finds and connects
 to the camera. Look for a log line containing "Zivid camera node is now ready!".
 
 In a new terminal window start the `zivid_samples_capture` node.
@@ -127,8 +127,6 @@ For example code in C++ and Python, see the Examples section.
 
 ## Services
 
-The zivid_camera node provides the following services.
-
 `/zivid_camera/capture`
 > Invoke this service to trigger a capture. The capture settings are configured using
 > dynamic_reconfigure, see the section "Dynamic parameters" below. When more than 1 frame is enabled
@@ -137,10 +135,7 @@ The zivid_camera node provides the following services.
 
 `/zivid_camera/camera_info`
 
-
 ## Published topics
-
-The zivid_camera node publishes on the following ROS topics.
 
 `/zivid_camera/point_cloud (sensor_msgs/PointCloud2)`
 > Point cloud data. Each time a capture is invoked the resulting point cloud is published
@@ -234,10 +229,9 @@ how to use the Zivid camera in ROS. These samples can be used as a starting poin
 
 ### Sample Capture
 
-This sample performs a single-capture 3 times per second repeatedly.
-
-This sample shows how to configure the capture settings using `dynamic_reconfigure`, how to subscribe
-to the `zivid_camera/point_cloud` topic, and how to invoke the capture service.
+This sample performs a single-capture 3 times per second repeatedly. This sample shows how to
+configure the capture settings using `dynamic_reconfigure`, how to subscribe to the
+`zivid_camera/point_cloud` topic, and how to invoke the capture service.
 
 [C++](./zivid_samples/src/sample_capture.cpp)
 ```
