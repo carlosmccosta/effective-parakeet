@@ -1,5 +1,0 @@
-<launch>
-    <node name="zivid_camera" pkg="zivid_camera" type="zivid_camera_node"/>
-    <node name="zivid_samples_capture" pkg="zivid_samples" type="zivid_samples_capture"/>
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find zivid_camera)/rviz/camera_view.rviz"/>
-</launch>

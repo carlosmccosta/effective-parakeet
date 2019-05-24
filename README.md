@@ -60,7 +60,7 @@ rosdep update
 rosdep install --from-paths src --ignore-src -r -y
 ```
 
-Finally, build the zivid_camera and zivid_sample packages.
+Finally, build the `zivid_camera` and `zivid_samples` packages.
 
 ```
 catkin build
@@ -79,14 +79,15 @@ Start roscore
 
 ```
 cd ~/catkin_ws
-source ~/catkin_ws/devel/setup.bash
+source devel/setup.bash
 roscore
 ```
 
 In a new terminal window start the `zivid_camera` node
 
 ```
-source ~/catkin_ws/devel/setup.bash
+cd ~/catkin_ws
+source devel/setup.bash
 rosrun zivid_camera zivid_camera_node
 ```
 
@@ -96,7 +97,8 @@ to the camera. Look for a log line containing "Zivid camera node is now ready!".
 In a new terminal window start the `zivid_samples_capture` node.
 
 ```
-source ~/catkin_ws/devel/setup.bash
+cd ~/catkin_ws
+source devel/setup.bash
 rosrun zivid_samples zivid_samples_capture
 ```
 
