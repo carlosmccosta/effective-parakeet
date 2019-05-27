@@ -35,17 +35,18 @@ An OpenCL 1.2 compatible GPU and OpenCL drivers are required by the Zivid Core l
 Follow guide at https://help.zivid.com to install OpenCL.
 
 #### Zivid Core Library
-Download and install the Zivid Core debian package from [our webpage](https://www.zivid.com/downloads).
+Download and install the "Toshiba Teli driver" and "Zivid Core" debian packages from
+[our webpage](https://www.zivid.com/downloads).
 
-Optionally install the Zivid Tools and Zivid Studio packages as well. They are not required by the ROS
-driver but can be useful for testing that your system has been configured correctly and that
+Optionally install the "Zivid Studio" and "Zivid Tools" packages as well. They are not required by the ROS
+driver but can be useful for testing that your system has been setup correctly and that
 the camera is detected.
 
 ### Building Zivid ROS driver
 
 #### Setting up the catkin workspace
 
-If you have not setup your catkin workspace, this needs to be done first.
+If you have not created a catkin workspace, this needs to be done first.
 ```
 source /opt/ros/melodic/setup.bash
 mkdir -p ~/catkin_ws/src
@@ -125,6 +126,14 @@ rosrun rqt_reconfigure rqt_reconfigure
 
 Try to adjust the exposure time or the iris and observe that the images and point cloud in
 [rviz](https://wiki.ros.org/rviz) changes.
+
+You can also use the launch script `sample_capture.launch` which does all of these
+steps for you, including starting rviz and rqt_reconfigure.
+
+```
+cd ~/catkin_ws && source devel/setup.bash
+roslaunch zivid_samples sample_capture.launch
+```
 
 A more detailed description of the `zivid_camera` node follows below.
 
