@@ -234,7 +234,10 @@ TODO: extend documentation.
 
 ## Launch Parameters
 
-TODO
+`serial_number`
+> Specify the serial number of the Zivid camera to use. Important: When passing this value via
+> the command line or rosparam the serial number must be prefixed with a colon (`:012345`). This parameter
+> is optional. By default the driver will connect to the first available camera.
 
 ## Samples
 

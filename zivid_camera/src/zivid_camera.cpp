@@ -112,7 +112,6 @@ zivid_camera::ZividCamera::ZividCamera()
                       "from scratch.");
   }
 
-  // First setup necessary parameters
   std::string serial_number;
   priv_.param<std::string>("serial_number", serial_number, "");
 
@@ -130,7 +129,7 @@ zivid_camera::ZividCamera::ZividCamera()
     auto cameras = zivid_.cameras();
     if (cameras.empty())
     {
-      throw std::runtime_error("No cameras found");
+      throw std::runtime_error("No cameras found. Ensure that the camera is connected to the USB3 port on your PC.");
     }
     else if (serial_number.empty())
     {
@@ -139,20 +138,18 @@ zivid_camera::ZividCamera::ZividCamera()
     }
     else
     {
-      if (serial_number.find("sn") != 0)
+      if (serial_number.find(":") == 0)
       {
-        throw std::runtime_error("Unrecognized serial number. The serial number must begin with 'sn'.");
+        serial_number = serial_number.substr(1);
       }
-
-      const auto sn = serial_number.substr(2);
       camera_ = [&]() {
-        ROS_INFO("Searching for camera with serial number %s ...", sn.c_str());
+        ROS_INFO("Searching for camera with serial number '%s' ...", serial_number.c_str());
         for (auto& c : cameras)
         {
-          if (c.serialNumber() == Zivid::SerialNumber(sn))
+          if (c.serialNumber() == Zivid::SerialNumber(serial_number))
             return c;
         }
-        throw std::runtime_error("No camera found with serial number " + sn);
+        throw std::runtime_error("No camera found with serial number '" + serial_number + "'");
       }();
     }
 
