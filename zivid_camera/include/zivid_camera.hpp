@@ -40,11 +40,11 @@ private:
   bool cameraInfoServiceHandler(zivid_camera::CameraInfo::Request& req, zivid_camera::CameraInfo::Response& res);
 
   void publishFrame(Zivid::Frame&& frame);
-  sensor_msgs::PointCloud2 frameToPointCloud2(const Zivid::Frame& frame);
-  sensor_msgs::Image frameToColorImage(const Zivid::Frame& frame);
-  sensor_msgs::Image frameToDepthImage(const Zivid::Frame& frame);
-  sensor_msgs::Image createNewImage(const Zivid::PointCloud& point_cloud, const std::string& encoding,
-                                    std::size_t step);
+  sensor_msgs::PointCloud2 frameToPointCloud2(const std_msgs::Header& header, const Zivid::Frame& frame);
+  sensor_msgs::Image frameToColorImage(const std_msgs::Header& header, const Zivid::Frame& frame);
+  sensor_msgs::Image frameToDepthImage(const std_msgs::Header& header, const Zivid::Frame& frame);
+  sensor_msgs::Image createNewImage(const std_msgs::Header& header, const Zivid::PointCloud& point_cloud,
+                                    const std::string& encoding, std::size_t step);
 
   struct DynamicReconfigureFrameConfig
   {

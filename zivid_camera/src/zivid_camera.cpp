@@ -393,60 +393,61 @@ bool zivid_camera::ZividCamera::cameraInfoServiceHandler(zivid_camera::CameraInf
 
 void zivid_camera::ZividCamera::publishFrame(Zivid::Frame&& frame)
 {
+  std_msgs::Header header;
+  header.seq = frame_id_++;
+  header.stamp = ros::Time::now();
+  header.frame_id = "zivid_optical_frame";
+
   if (pointcloud_pub_.getNumSubscribers() > 0)
   {
     ROS_INFO("Publishing point cloud");
-    pointcloud_pub_.publish(frameToPointCloud2(frame));
+    pointcloud_pub_.publish(frameToPointCloud2(header, frame));
   }
 
   if (color_image_publisher_.getNumSubscribers() > 0)
   {
     ROS_INFO("Publishing color image");
-    color_image_publisher_.publish(frameToColorImage(frame));
+    color_image_publisher_.publish(frameToColorImage(header, frame));
   }
 
   if (depth_image_publisher_.getNumSubscribers() > 0)
   {
     ROS_INFO("Publishing depth image");
-    depth_image_publisher_.publish(frameToDepthImage(frame));
+    depth_image_publisher_.publish(frameToDepthImage(header, frame));
   }
 }
 
-sensor_msgs::PointCloud2 zivid_camera::ZividCamera::frameToPointCloud2(const Zivid::Frame& frame)
+sensor_msgs::PointCloud2 zivid_camera::ZividCamera::frameToPointCloud2(const std_msgs::Header& header,
+                                                                       const Zivid::Frame& frame)
 {
   Zivid::PointCloud point_cloud = frame.getPointCloud();
-  sensor_msgs::PointCloud2 pointcloud_msg;
 
-  // Setup header values
-  pointcloud_msg.header.seq = frame_id_++;
-  pointcloud_msg.header.stamp = ros::Time::now();
-  pointcloud_msg.header.frame_id = "zividsensor";
+  sensor_msgs::PointCloud2 msg;
+  msg.header = header;
+  msg.height = point_cloud.height();
+  msg.width = point_cloud.width();
+  msg.is_bigendian = false;
+  msg.point_step = sizeof(Zivid::Point);
+  msg.row_step = msg.point_step * msg.width;
+  msg.is_dense = false;
 
-  // Now copy the point cloud information.
-  pointcloud_msg.height = point_cloud.height();
-  pointcloud_msg.width = point_cloud.width();
-  pointcloud_msg.is_bigendian = false;
-  pointcloud_msg.point_step = sizeof(Zivid::Point);
-  pointcloud_msg.row_step = pointcloud_msg.point_step * pointcloud_msg.width;
-  pointcloud_msg.is_dense = false;
+  msg.fields.reserve(5);
+  msg.fields.push_back(createPointField("x", 0, 7, 1));
+  msg.fields.push_back(createPointField("y", 4, 7, 1));
+  msg.fields.push_back(createPointField("z", 8, 7, 1));
+  msg.fields.push_back(createPointField("c", 12, 7, 1));
+  msg.fields.push_back(createPointField("rgb", 16, 7, 1));
 
-  pointcloud_msg.fields.reserve(5);
-  pointcloud_msg.fields.push_back(createPointField("x", 0, 7, 1));
-  pointcloud_msg.fields.push_back(createPointField("y", 4, 7, 1));
-  pointcloud_msg.fields.push_back(createPointField("z", 8, 7, 1));
-  pointcloud_msg.fields.push_back(createPointField("c", 12, 7, 1));
-  pointcloud_msg.fields.push_back(createPointField("rgb", 16, 7, 1));
-
-  pointcloud_msg.data =
+  msg.data =
       std::vector<uint8_t>((uint8_t*)point_cloud.dataPtr(), (uint8_t*)(point_cloud.dataPtr() + point_cloud.size()));
 
 #pragma omp parallel for
   for (std::size_t i = 0; i < point_cloud.size(); i++)
   {
-    uint8_t* point_ptr = &(pointcloud_msg.data[i * sizeof(Zivid::Point)]);
-    float* x_ptr = (float*)&(point_ptr[pointcloud_msg.fields[0].offset]);
-    float* y_ptr = (float*)&(point_ptr[pointcloud_msg.fields[1].offset]);
-    float* z_ptr = (float*)&(point_ptr[pointcloud_msg.fields[2].offset]);
+    uint8_t* point_ptr = &(msg.data[i * sizeof(Zivid::Point)]);
+    float* x_ptr = (float*)&(point_ptr[msg.fields[0].offset]);
+    float* y_ptr = (float*)&(point_ptr[msg.fields[1].offset]);
+    float* z_ptr = (float*)&(point_ptr[msg.fields[2].offset]);
 
     // Convert from mm to m.
     *x_ptr *= 0.001f;
@@ -454,13 +455,14 @@ sensor_msgs::PointCloud2 zivid_camera::ZividCamera::frameToPointCloud2(const Ziv
     *z_ptr *= 0.001f;
   }
 
-  return pointcloud_msg;
+  return msg;
 }
 
-sensor_msgs::Image zivid_camera::ZividCamera::frameToColorImage(const Zivid::Frame& frame)
+sensor_msgs::Image zivid_camera::ZividCamera::frameToColorImage(const std_msgs::Header& header,
+                                                                const Zivid::Frame& frame)
 {
   Zivid::PointCloud point_cloud = frame.getPointCloud();
-  auto image = createNewImage(point_cloud, sensor_msgs::image_encodings::RGB8, 3 * point_cloud.width());
+  auto image = createNewImage(header, point_cloud, sensor_msgs::image_encodings::RGB8, 3 * point_cloud.width());
 
 #pragma omp parallel for
   for (std::size_t i = 0; i < point_cloud.size(); i++)
@@ -472,10 +474,11 @@ sensor_msgs::Image zivid_camera::ZividCamera::frameToColorImage(const Zivid::Fra
   return image;
 }
 
-sensor_msgs::Image zivid_camera::ZividCamera::frameToDepthImage(const Zivid::Frame& frame)
+sensor_msgs::Image zivid_camera::ZividCamera::frameToDepthImage(const std_msgs::Header& header,
+                                                                const Zivid::Frame& frame)
 {
   Zivid::PointCloud point_cloud = frame.getPointCloud();
-  auto image = createNewImage(point_cloud, sensor_msgs::image_encodings::TYPE_32FC1, 4 * point_cloud.width());
+  auto image = createNewImage(header, point_cloud, sensor_msgs::image_encodings::TYPE_32FC1, 4 * point_cloud.width());
 
 #pragma omp parallel for
   for (std::size_t i = 0; i < point_cloud.size(); i++)
@@ -486,13 +489,12 @@ sensor_msgs::Image zivid_camera::ZividCamera::frameToDepthImage(const Zivid::Fra
   return image;
 }
 
-sensor_msgs::Image zivid_camera::ZividCamera::createNewImage(const Zivid::PointCloud& point_cloud,
+sensor_msgs::Image zivid_camera::ZividCamera::createNewImage(const std_msgs::Header& header,
+                                                             const Zivid::PointCloud& point_cloud,
                                                              const std::string& encoding, std::size_t step)
 {
   sensor_msgs::Image image;
-  image.header.seq = frame_id_++;
-  image.header.stamp = ros::Time::now();
-  image.header.frame_id = "zividsensor";
+  image.header = header;
   image.encoding = encoding;
   image.height = point_cloud.height();
   image.width = point_cloud.width();
