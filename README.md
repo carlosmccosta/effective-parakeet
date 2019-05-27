@@ -112,18 +112,19 @@ The `zivid_samples_capture` node will first configure the capture settings of th
 capture repeatedly. You can visualize the point cloud, color image and depth image using [rviz](https://wiki.ros.org/rviz).
 
 ```
-rosrun rviz rviz
+cd ~/catkin_ws && source devel/setup.bash
+rosrun rviz rviz -d $(rospack find zivid_camera)/rviz/camera_view.rviz
 ```
 
-In rviz, go til File -> Open Config and navigate to zivid_camera/rviz/camera_view.rviz. NOTE: Due
-to a bug in rviz you may have to open the configuration file twice.
-
-You can adjust the capture settings using [rqt_reconfigure](https://wiki.ros.org/rqt_reconfigure). Try to adjust the exposure time or the
-iris and observe that the images and point cloud in [rviz](https://wiki.ros.org/rviz) changes.
+You can adjust the capture settings using [rqt_reconfigure](https://wiki.ros.org/rqt_reconfigure).
 
 ```
+cd ~/catkin_ws && source devel/setup.bash
 rosrun rqt_reconfigure rqt_reconfigure
 ```
+
+Try to adjust the exposure time or the iris and observe that the images and point cloud in
+[rviz](https://wiki.ros.org/rviz) changes.
 
 A more detailed description of the `zivid_camera` node follows below.
 
