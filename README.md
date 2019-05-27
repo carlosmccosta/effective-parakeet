@@ -234,10 +234,15 @@ TODO: extend documentation.
 
 ## Launch Parameters
 
-`serial_number`
+`serial_number (string)`
 > Specify the serial number of the Zivid camera to use. Important: When passing this value via
 > the command line or rosparam the serial number must be prefixed with a colon (`:012345`). This parameter
 > is optional. By default the driver will connect to the first available camera.
+
+`file_camera_path (string)`
+> Specify path to a file camera to use instead of a real Zivid camera. This can be used to develop without access
+> to hardware. The file camera returns the same point cloud for every capture.
+> [Download file camera.](https://www.zivid.com/software/ZividSampleData.zip).
 
 ## Samples
 
@@ -246,9 +251,9 @@ how to use the Zivid camera in ROS. These samples can be used as a starting poin
 
 ### Sample Capture
 
-This sample performs a single-capture repeatedly. This sample shows how to
-configure the capture settings using `dynamic_reconfigure`, how to subscribe to the
-`zivid_camera/point_cloud` topic, and how to invoke the capture service.
+This sample performs a single-capture repeatedly. This sample shows how to configure the capture
+settings using `dynamic_reconfigure`, how to subscribe to the `zivid_camera/point_cloud` topic, and
+how to invoke the capture service.
 
 [C++](./zivid_samples/src/sample_capture.cpp)
 ```

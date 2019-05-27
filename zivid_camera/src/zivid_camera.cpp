@@ -89,6 +89,15 @@ bool big_endian()
   return u.c[0] == 0x01;
 }
 
+template <class T>
+void fillCommonMsgFields(T& msg, const std_msgs::Header& header, const Zivid::PointCloud& pc)
+{
+  msg.header = header;
+  msg.height = pc.height();
+  msg.width = pc.width();
+  msg.is_bigendian = big_endian();
+}
+
 }  // namespace
 
 zivid_camera::ZividCamera::ZividCamera()
@@ -115,16 +124,16 @@ zivid_camera::ZividCamera::ZividCamera()
   std::string serial_number;
   priv_.param<std::string>("serial_number", serial_number, "");
 
-  bool test_mode_enabled;
-  nh_.param<bool>("zivid_test_mode_enabled", test_mode_enabled, false);
-  std::string test_mode_file;
-  if (test_mode_enabled)
-  {
-    nh_.param<std::string>("zivid_test_mode_file", test_mode_file, "test.zdf");
-    ROS_INFO("Using test file %s", test_mode_file.c_str());
-  }
+  std::string file_camera_path;
+  priv_.param<std::string>("file_camera_path", file_camera_path, "");
+  const bool file_camera_mode = !file_camera_path.empty();
 
-  if (!test_mode_enabled)
+  if (file_camera_mode)
+  {
+    ROS_INFO("Creating file camera from file '%s'", file_camera_path.c_str());
+    camera_ = zivid_.createFileCamera(file_camera_path);
+  }
+  else
   {
     auto cameras = zivid_.cameras();
     if (cameras.empty())
@@ -162,16 +171,13 @@ zivid_camera::ZividCamera::ZividCamera()
       ROS_INFO("Firmware update completed");
     }
   }
-  else
-  {
-    ROS_INFO("Test mode enabled");
-    ROS_INFO("Creating file camera '%s'", test_mode_file.c_str());
-    camera_ = zivid_.createFileCamera(test_mode_file);
-  }
 
   ROS_INFO("%s", camera_.toString().c_str());
-  ROS_INFO("Connecting to camera ...");
-  camera_.connect();
+  if (!file_camera_mode)
+  {
+    ROS_INFO("Connecting to camera ...");
+    camera_.connect();
+  }
   ROS_INFO("Connected to camera");
 
   camera_.setFrameCallback(boost::bind(&zivid_camera::ZividCamera::frameCallbackFunction, this, _1));
@@ -193,9 +199,8 @@ zivid_camera::ZividCamera::ZividCamera()
   ROS_INFO("Registering point cloud topic at '%s'", pointCloudTopic);
   pointcloud_pub_ = priv_.advertise<sensor_msgs::PointCloud2>(pointCloudTopic, 1);
 
-  color_image_publisher_ = image_transport_.advertise("color/image_rect_color", 3);  // TODO consider making these
-                                                                                     // params
-  depth_image_publisher_ = image_transport_.advertise("depth/image", 3);  // TODO consider making these params
+  color_image_publisher_ = image_transport_.advertise("color/image_rect_color", 3);
+  depth_image_publisher_ = image_transport_.advertise("depth/image", 3);
 
   const auto captureServiceName = "capture";
   ROS_INFO("Registering pointcloud capture service at '%s'", captureServiceName);
@@ -390,40 +395,44 @@ bool zivid_camera::ZividCamera::cameraInfoServiceHandler(zivid_camera::CameraInf
 
 void zivid_camera::ZividCamera::publishFrame(Zivid::Frame&& frame)
 {
-  std_msgs::Header header;
-  header.seq = frame_id_++;
-  header.stamp = ros::Time::now();
-  header.frame_id = "zivid_optical_frame";
+  const bool hasPointCloudSubs = pointcloud_pub_.getNumSubscribers() > 0;
+  const bool hasColorImgSubs = color_image_publisher_.getNumSubscribers() > 0;
+  const bool hasDepthImgSubs = depth_image_publisher_.getNumSubscribers() > 0;
 
-  if (pointcloud_pub_.getNumSubscribers() > 0)
+  if (hasPointCloudSubs || hasColorImgSubs || hasDepthImgSubs)
   {
-    ROS_INFO("Publishing point cloud");
-    pointcloud_pub_.publish(frameToPointCloud2(header, frame));
-  }
+    auto point_cloud = frame.getPointCloud();
 
-  if (color_image_publisher_.getNumSubscribers() > 0)
-  {
-    ROS_INFO("Publishing color image");
-    color_image_publisher_.publish(frameToColorImage(header, frame));
-  }
+    std_msgs::Header header;
+    header.seq = frame_id_++;
+    header.stamp = ros::Time::now();
+    header.frame_id = "zivid_optical_frame";
 
-  if (depth_image_publisher_.getNumSubscribers() > 0)
-  {
-    ROS_INFO("Publishing depth image");
-    depth_image_publisher_.publish(frameToDepthImage(header, frame));
+    if (hasPointCloudSubs)
+    {
+      ROS_INFO("Publishing point cloud");
+      pointcloud_pub_.publish(makePointCloud2(header, point_cloud));
+    }
+
+    if (hasColorImgSubs)
+    {
+      ROS_INFO("Publishing color image");
+      color_image_publisher_.publish(makeColorImage(header, point_cloud));
+    }
+
+    if (hasDepthImgSubs)
+    {
+      ROS_INFO("Publishing depth image");
+      depth_image_publisher_.publish(makeDepthImage(header, point_cloud));
+    }
   }
 }
 
-sensor_msgs::PointCloud2 zivid_camera::ZividCamera::frameToPointCloud2(const std_msgs::Header& header,
-                                                                       const Zivid::Frame& frame)
+sensor_msgs::PointCloud2 zivid_camera::ZividCamera::makePointCloud2(const std_msgs::Header& header,
+                                                                    const Zivid::PointCloud& point_cloud)
 {
-  Zivid::PointCloud point_cloud = frame.getPointCloud();
-
   sensor_msgs::PointCloud2 msg;
-  msg.header = header;
-  msg.height = point_cloud.height();
-  msg.width = point_cloud.width();
-  msg.is_bigendian = false;
+  fillCommonMsgFields(msg, header, point_cloud);
   msg.point_step = sizeof(Zivid::Point);
   msg.row_step = msg.point_step * msg.width;
   msg.is_dense = false;
@@ -455,48 +464,39 @@ sensor_msgs::PointCloud2 zivid_camera::ZividCamera::frameToPointCloud2(const std
   return msg;
 }
 
-sensor_msgs::Image zivid_camera::ZividCamera::frameToColorImage(const std_msgs::Header& header,
-                                                                const Zivid::Frame& frame)
+sensor_msgs::Image zivid_camera::ZividCamera::makeColorImage(const std_msgs::Header& header,
+                                                             const Zivid::PointCloud& point_cloud)
 {
-  Zivid::PointCloud point_cloud = frame.getPointCloud();
-  auto image = createNewImage(header, point_cloud, sensor_msgs::image_encodings::RGB8, 3 * point_cloud.width());
+  sensor_msgs::Image img;
+  fillCommonMsgFields(img, header, point_cloud);
+  img.encoding = sensor_msgs::image_encodings::RGB8;
+  img.step = 3 * point_cloud.width();
+  img.data.resize(img.step * img.height);
 
 #pragma omp parallel for
   for (std::size_t i = 0; i < point_cloud.size(); i++)
   {
-    image.data[3 * i + 0] = point_cloud(i).red();
-    image.data[3 * i + 1] = point_cloud(i).green();
-    image.data[3 * i + 2] = point_cloud(i).blue();
+    img.data[3 * i + 0] = point_cloud(i).red();
+    img.data[3 * i + 1] = point_cloud(i).green();
+    img.data[3 * i + 2] = point_cloud(i).blue();
   }
-  return image;
+  return img;
 }
 
-sensor_msgs::Image zivid_camera::ZividCamera::frameToDepthImage(const std_msgs::Header& header,
-                                                                const Zivid::Frame& frame)
+sensor_msgs::Image zivid_camera::ZividCamera::makeDepthImage(const std_msgs::Header& header,
+                                                             const Zivid::PointCloud& point_cloud)
 {
-  Zivid::PointCloud point_cloud = frame.getPointCloud();
-  auto image = createNewImage(header, point_cloud, sensor_msgs::image_encodings::TYPE_32FC1, 4 * point_cloud.width());
+  sensor_msgs::Image img;
+  fillCommonMsgFields(img, header, point_cloud);
+  img.encoding = sensor_msgs::image_encodings::TYPE_32FC1;
+  img.step = 4 * point_cloud.width();
+  img.data.resize(img.step * img.height);
 
 #pragma omp parallel for
   for (std::size_t i = 0; i < point_cloud.size(); i++)
   {
-    float* image_data = reinterpret_cast<float*>(&image.data[4 * i]);
+    float* image_data = reinterpret_cast<float*>(&img.data[4 * i]);
     *image_data = point_cloud(i).z * 0.001;
   }
-  return image;
-}
-
-sensor_msgs::Image zivid_camera::ZividCamera::createNewImage(const std_msgs::Header& header,
-                                                             const Zivid::PointCloud& point_cloud,
-                                                             const std::string& encoding, std::size_t step)
-{
-  sensor_msgs::Image image;
-  image.header = header;
-  image.encoding = encoding;
-  image.height = point_cloud.height();
-  image.width = point_cloud.width();
-  image.step = step;
-  image.is_bigendian = big_endian();
-  image.data.resize(image.step * image.height);
-  return image;
+  return img;
 }
