@@ -78,6 +78,17 @@ sensor_msgs::PointField createPointField(std::string name, uint32_t offset, uint
   point_field.count = count;
   return point_field;
 }
+
+bool big_endian()
+{
+  union
+  {
+    uint32_t i;
+    char c[4];
+  } u = { 0x01020304 };
+  return u.c[0] == 0x01;
+}
+
 }  // namespace
 
 zivid_camera::ZividCamera::ZividCamera()
@@ -486,7 +497,7 @@ sensor_msgs::Image zivid_camera::ZividCamera::createNewImage(const Zivid::PointC
   image.height = point_cloud.height();
   image.width = point_cloud.width();
   image.step = step;
-  image.is_bigendian = 0;  // TODO fix
+  image.is_bigendian = big_endian();
   image.data.resize(image.step * image.height);
   return image;
 }
