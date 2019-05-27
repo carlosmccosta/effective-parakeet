@@ -419,9 +419,10 @@ sensor_msgs::PointCloud2 zivid_camera::ZividCamera::frameToPointCloud2(const Ziv
   pointcloud_msg.row_step = pointcloud_msg.point_step * pointcloud_msg.width;
   pointcloud_msg.is_dense = false;
 
-  pointcloud_msg.fields.push_back(createPointField("x", 8, 7, 1));
-  pointcloud_msg.fields.push_back(createPointField("y", 0, 7, 1));
-  pointcloud_msg.fields.push_back(createPointField("z", 4, 7, 1));
+  pointcloud_msg.fields.reserve(5);
+  pointcloud_msg.fields.push_back(createPointField("x", 0, 7, 1));
+  pointcloud_msg.fields.push_back(createPointField("y", 4, 7, 1));
+  pointcloud_msg.fields.push_back(createPointField("z", 8, 7, 1));
   pointcloud_msg.fields.push_back(createPointField("c", 12, 7, 1));
   pointcloud_msg.fields.push_back(createPointField("rgb", 16, 7, 1));
 
@@ -436,10 +437,10 @@ sensor_msgs::PointCloud2 zivid_camera::ZividCamera::frameToPointCloud2(const Ziv
     float* y_ptr = (float*)&(point_ptr[pointcloud_msg.fields[1].offset]);
     float* z_ptr = (float*)&(point_ptr[pointcloud_msg.fields[2].offset]);
 
-    // TODO this rotation should actually be fixed in tf, even though it probably is slightly slower.
+    // Convert from mm to m.
     *x_ptr *= 0.001f;
-    *z_ptr *= -0.001f;
-    *y_ptr *= -0.001f;
+    *y_ptr *= 0.001f;
+    *z_ptr *= 0.001f;
   }
 
   return pointcloud_msg;
