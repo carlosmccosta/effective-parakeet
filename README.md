@@ -109,10 +109,7 @@ rosrun zivid_samples zivid_samples_capture
 ```
 
 The `zivid_samples_capture` node will first configure the capture settings of the camera and then
-trigger captures repeatedly twice a second.
-
-If everything is working so far, the camera will now capture approximately 3 times per second.
-You can visualize the point cloud, color image and depth image using rviz.
+capture repeatedly. You can visualize the point cloud, color image and depth image using [rviz](https://wiki.ros.org/rviz).
 
 ```
 rosrun rviz rviz
@@ -121,7 +118,8 @@ rosrun rviz rviz
 In rviz, go til File -> Open Config and navigate to zivid_camera/rviz/camera_view.rviz. NOTE: Due
 to a bug in rviz you may have to open the configuration file twice.
 
-While the camera is capturing you can adjust the capture settings using rqt_reconfigure.
+You can adjust the capture settings using [rqt_reconfigure](https://wiki.ros.org/rqt_reconfigure). Try to adjust the exposure time or the
+iris and observe that the images and point cloud in [rviz](https://wiki.ros.org/rviz) changes.
 
 ```
 rosrun rqt_reconfigure rqt_reconfigure
@@ -129,7 +127,7 @@ rosrun rqt_reconfigure rqt_reconfigure
 
 A more detailed description of the `zivid_camera` node follows below.
 
-For example code in C++ and Python, see the Examples section.
+For sample code in C++ and Python, see the Samples section.
 
 ## Services
 
@@ -141,7 +139,7 @@ For example code in C++ and Python, see the Examples section.
 
 `/zivid_camera/camera_info`
 
-## Published topics
+## Topics
 
 `/zivid_camera/point_cloud (sensor_msgs/PointCloud2)`
 > Point cloud data. Each time a capture is invoked the resulting point cloud is published
@@ -228,14 +226,14 @@ TODO: extend documentation.
 
 TODO
 
-## Examples
+## Samples
 
 In the zivid_samples package we have added several example nodes in C++ and Python that demonstrate
 how to use the Zivid camera in ROS. These samples can be used as a starting point for your own project.
 
 ### Sample Capture
 
-This sample performs a single-capture 3 times per second repeatedly. This sample shows how to
+This sample performs a single-capture repeatedly. This sample shows how to
 configure the capture settings using `dynamic_reconfigure`, how to subscribe to the
 `zivid_camera/point_cloud` topic, and how to invoke the capture service.
 

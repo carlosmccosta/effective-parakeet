@@ -2,12 +2,19 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <zivid_camera/CaptureFrameConfig.h>
 #include <zivid_camera/Capture.h>
-#include <dynamic_reconfigure/Config.h>
 #include <dynamic_reconfigure/Reconfigure.h>
+
+void capture()
+{
+  ROS_INFO("Calling capture service");
+  zivid_camera::Capture capture;
+  ros::service::call("/zivid_camera/capture", capture);
+}
 
 void onPointCloud(const sensor_msgs::PointCloud2ConstPtr&)
 {
   ROS_INFO("PointCloud received");
+  capture();
 }
 
 int main(int argc, char** argv)
@@ -27,15 +34,9 @@ int main(int argc, char** argv)
   frameCfg.__toMessage__(reconfig.request.config);
   ros::service::call("/zivid_camera/capture_frame/frame_0/set_parameters", reconfig);
 
-  ros::Rate loop_rate(3);
-  while (ros::ok())
-  {
-    ROS_INFO("Calling capture");
-    zivid_camera::Capture capture;
-    ros::service::call("/zivid_camera/capture", capture);
-    ros::spinOnce();
-    loop_rate.sleep();
-  }
+  capture();
+
+  ros::spin();
 
   return 0;
 }
