@@ -30,15 +30,11 @@ public:
   ~ZividCamera();
 
 private:
-  void frameCallbackFunction(Zivid::Frame frame);
   void settingsReconfigureCallback(zivid_camera::CaptureFrameConfig& config, uint32_t level, const std::string& name);
   void newSettings(const std::string& name);
-  // void cameraReconfigureCallback(zivid_camera::ZividCameraConfig& config, uint32_t level);
   void captureGeneralReconfigureCb(zivid_camera::CaptureGeneralConfig& config, uint32_t level);
-  // void configureCameraMode(int camera_mode);
   bool captureServiceHandler(zivid_camera::Capture::Request& req, zivid_camera::Capture::Response& res);
   bool cameraInfoServiceHandler(zivid_camera::CameraInfo::Request& req, zivid_camera::CameraInfo::Response& res);
-
   void publishFrame(Zivid::Frame&& frame);
   sensor_msgs::PointCloud2 makePointCloud2(const std_msgs::Header& header, const Zivid::PointCloud& point_cloud);
   sensor_msgs::Image makeColorImage(const std_msgs::Header& header, const Zivid::PointCloud& point_cloud);
@@ -52,13 +48,10 @@ private:
     CfgType config;
   };
 
-  // int camera_mode_;
   int frame_id_;
   ros::NodeHandle nh_;
   ros::NodeHandle priv_;
 
-  // ros::NodeHandle camera_reconfigure_handler_;
-  // dynamic_reconfigure::Server<zivid_camera::ZividCameraConfig> camera_reconfigure_server_;
   ros::NodeHandle capture_general_dynreconfig_node_;
   dynamic_reconfigure::Server<zivid_camera::CaptureGeneralConfig> capture_general_dynreconfig_server_;
   zivid_camera::CaptureGeneralConfig currentCaptureGeneralConfig_;

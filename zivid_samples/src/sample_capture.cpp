@@ -42,7 +42,7 @@ int main(int argc, char** argv)
   }
 
   ros::Subscriber sub = n.subscribe("/zivid_camera/point_cloud", 10, onPointCloud);
-  ros::Duration(1).sleep(); //TODO avoid
+  ros::Duration(1).sleep();  // TODO avoid
 
   ROS_INFO("Enable and configure the first frame");
   zivid_camera::CaptureFrameConfig frameCfg = zivid_camera::CaptureFrameConfig::__getDefault__();
