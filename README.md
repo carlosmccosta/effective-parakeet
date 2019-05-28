@@ -154,13 +154,15 @@ For sample code in C++ and Python, see the Samples section.
 `/zivid_camera/point_cloud (sensor_msgs/PointCloud2)`
 > Point cloud data. Each time a capture is invoked the resulting point cloud is published
 > on this topic. The included point fields are x, y, z (in meters), c (contrast value),
-> and r, g, b (colors).
+> and r, g, b (colors). The output is in the camera's optical frame, where x is right, y is
+> down and z is forward.
 
 `/zivid_camera/color/image_rect_color (sensor_msgs/Image)`
 > RGB image. The image is encoded as "rgb8".
 
 `/zivid_camera/depth/image (sensor_msgs/Image)`
-> Depth image. Each pixel contains the z-value (in meters). The image is encoded as 32-bit float.
+> Depth image. Each pixel contains the z-value (along the camera Z axis) in meters.
+> The image is encoded as 32-bit float. Pixels where z-value is missing is denoted as NaN.
 
 ## Configuration of capture settings
 
@@ -203,7 +205,7 @@ frame. `<n>` can be 0 to 9 for a total of 10 configured frames.
 `/zivid_camera/capture/` service is invoked, if just one frame is enabled, the camera will
 perform a single-capture. If more than one frame is enabled, the camera will perform an HDR capture.
 
-By default all the frames are enabled=false. In order to capture a point cloud at least one frame
+By default all frames are disabled. In order to capture a point cloud at least one frame
 needs to be enabled.
 
 ### Dynamic parameters
@@ -236,13 +238,15 @@ TODO: extend documentation.
 
 `serial_number (string)`
 > Specify the serial number of the Zivid camera to use. Important: When passing this value via
-> the command line or rosparam the serial number must be prefixed with a colon (`:012345`). This parameter
-> is optional. By default the driver will connect to the first available camera.
+> the command line or rosparam the serial number must be prefixed with a colon (`:012345`).
+> This parameter is optional. By default the driver will connect to the first available camera.
+> Default: "".
 
 `file_camera_path (string)`
-> Specify path to a file camera to use instead of a real Zivid camera. This can be used to develop without access
+> Specify the path to a file camera to use instead of a real Zivid camera. This can be used to develop without access
 > to hardware. The file camera returns the same point cloud for every capture.
-> [Download file camera.](https://www.zivid.com/software/ZividSampleData.zip).
+> [Download file camera.](https://www.zivid.com/software/ZividSampleData.zip)
+> Default: "".
 
 ## Samples
 
