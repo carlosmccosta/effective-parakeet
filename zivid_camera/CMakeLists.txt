@@ -146,6 +146,7 @@ add_library(${PROJECT_NAME}
     src/zivid_camera.cpp
 )
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic -Werror)
+target_compile_definitions(${PROJECT_NAME} PRIVATE "ZIVID_ROS_DRIVER_VERSION=\"${${PROJECT_NAME}_VERSION}\"")
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries

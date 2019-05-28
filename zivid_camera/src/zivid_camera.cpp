@@ -111,7 +111,7 @@ zivid_camera::ZividCamera::ZividCamera()
   , currentCaptureGeneralConfig_(zivid_camera::CaptureGeneralConfig::__getDefault__())
   , image_transport_(priv_)
 {
-  ROS_INFO("Zivid ROS driver version 0.0.1");  // todo get from cmake
+  ROS_INFO("Zivid ROS driver version %s", ZIVID_ROS_DRIVER_VERSION);
   ROS_INFO("Built towards Zivid API version %s", ZIVID_VERSION);
   ROS_INFO("Running with Zivid API version %s", Zivid::Version::libraryVersion().c_str());
   if (Zivid::Version::libraryVersion() != ZIVID_VERSION)
