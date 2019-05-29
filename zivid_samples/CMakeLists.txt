@@ -123,7 +123,7 @@ include_directories(
 )
 
 add_executable(${PROJECT_NAME}_capture src/sample_capture.cpp)
-target_compile_options(${PROJECT_NAME}_capture PRIVATE -Wall -Wextra -pedantic -Werror)
+#target_compile_options(${PROJECT_NAME}_capture PRIVATE -Wall -Wextra -pedantic -Werror)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
