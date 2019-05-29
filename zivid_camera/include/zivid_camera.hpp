@@ -4,10 +4,8 @@
 #include <ros/ros.h>
 
 #include <zivid_camera/CaptureFrameConfig.h>
-//#include <zivid_camera/ZividCameraConfig.h>
 #include <zivid_camera/CaptureGeneralConfig.h>
 #include <zivid_camera/Capture.h>
-#include <zivid_camera/CameraInfo.h>
 
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/Image.h>
@@ -49,7 +47,6 @@ private:
   void onCaptureFrameConfigChanged(zivid_camera::CaptureFrameConfig& config, uint32_t level,
                                    DRFrameConfig& frameConfig);
   bool captureServiceHandler(zivid_camera::Capture::Request& req, zivid_camera::Capture::Response& res);
-  bool cameraInfoServiceHandler(zivid_camera::CameraInfo::Request& req, zivid_camera::CameraInfo::Response& res);
   void publishFrame(Zivid::Frame&& frame);
   sensor_msgs::PointCloud2 makePointCloud2(const std_msgs::Header& header, const Zivid::PointCloud& point_cloud);
   sensor_msgs::Image makeColorImage(const std_msgs::Header& header, const Zivid::PointCloud& point_cloud);
@@ -66,7 +63,8 @@ private:
   image_transport::Publisher depth_image_publisher_;
   ros::ServiceServer capture_service_;
   std::vector<ros::ServiceServer> generated_servers_;
-  ros::ServiceServer zivid_info_service_;
+  ros::ServiceServer camera_info_serial_number_service_;
+  ros::ServiceServer camera_info_model_name_service_;
   std::vector<std::unique_ptr<DRFrameConfig>> frame_configs_;
   Zivid::Application zivid_;
   Zivid::Camera camera_;

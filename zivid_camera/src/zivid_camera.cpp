@@ -1,7 +1,7 @@
 #include "zivid_camera.hpp"
 #include "parse_settings.hpp"
-#include "zivid_camera/BooleanState.h"
-#include "zivid_camera/FloatState.h"
+#include "zivid_camera/CameraInfoModelName.h"
+#include "zivid_camera/CameraInfoSerialNumber.h"
 
 #include <sensor_msgs/point_cloud2_iterator.h>
 #include <sensor_msgs/image_encodings.h>
@@ -111,56 +111,6 @@ void setConfigDefaultFromZividSettings(const Zivid::Settings& s, zivid_camera::C
   cfg.brightness = s.brightness().value();
   cfg.gain = s.gain().value();
   cfg.bidirectional = s.bidirectional().value();
-}
-
-template <typename ValueType>
-struct ValueTypeToRosType
-{
-};
-// TODO probably we want to use std_msg types
-template <>
-struct ValueTypeToRosType<bool>
-{
-  using type = zivid_camera::BooleanState;
-};
-template <>
-struct ValueTypeToRosType<float>
-{
-  using type = zivid_camera::FloatState;
-};
-template <>
-struct ValueTypeToRosType<double>
-{
-  using type = zivid_camera::FloatState;
-};
-
-template <typename ZividType>
-ros::ServiceServer createCameraStateService(ros::NodeHandle& nh, const Zivid::Camera& camera)
-{
-  // TODO handle better unknown states, ignore or error?
-  using RosType = typename ValueTypeToRosType<typename ZividType::ValueType>::type;
-
-  std::string servicePath =
-      std::string("camera_state/") + (boost::algorithm::to_lower_copy(std::string(ZividType::path)));
-
-  ROS_INFO("Advertising cam state service for '%s' at '%s'", ZividType::name, servicePath.c_str());
-
-  boost::function<bool(typename RosType::Request&, typename RosType::Response&)> callback =
-      [&camera](typename RosType::Request&, typename RosType::Response& res) {
-        res.value = camera.state().get<ZividType>().value();
-        return true;
-      };
-  return nh.advertiseService(servicePath, callback);
-}
-
-template <class RootNode, class ListType>
-auto setupCameraStateServices(const RootNode& rootNode, ListType& list, ros::NodeHandle& nh,
-                              const Zivid::Camera& camera)
-{
-  rootNode.traverseValues([&](const auto& childNode) {
-    using ChildType = std::remove_const_t<std::remove_reference_t<decltype(childNode)>>;
-    list.push_back(createCameraStateService<ChildType>(nh, camera));
-  });
 }
 
 sensor_msgs::PointField createPointField(std::string name, uint32_t offset, uint8_t datatype, uint32_t count)
@@ -294,13 +244,23 @@ zivid_camera::ZividCamera::ZividCamera(ros::NodeHandle& nh)
       boost::bind(&zivid_camera::ZividCamera::captureServiceHandler, this, _1, _2);
   capture_service_ = priv_.advertiseService(captureServiceName, capture_callback_func);
 
-  // setupCameraStateServices(camera_.state(), generated_servers_, priv_, camera_);
+  // TODO make nicer
+  boost::function<bool(zivid_camera::CameraInfoModelName::Request&, zivid_camera::CameraInfoModelName::Response&)>
+      model_name_cb =
+          [this](zivid_camera::CameraInfoModelName::Request&, zivid_camera::CameraInfoModelName::Response& res) {
+            res.model_name = camera_.modelName();
+            return true;
+          };
+  camera_info_model_name_service_ = priv_.advertiseService("camera_info/model_name", model_name_cb);
 
-  const auto cameraInfoServiceName = "camera_info";
-  ROS_INFO("Registering camera_info service at '%s'", cameraInfoServiceName);
-  boost::function<bool(zivid_camera::CameraInfo::Request&, zivid_camera::CameraInfo::Response&)>
-      zivid_info_callback_func = boost::bind(&zivid_camera::ZividCamera::cameraInfoServiceHandler, this, _1, _2);
-  zivid_info_service_ = priv_.advertiseService(cameraInfoServiceName, zivid_info_callback_func);
+  // TODO make nicer
+  boost::function<bool(zivid_camera::CameraInfoSerialNumber::Request&, zivid_camera::CameraInfoSerialNumber::Response&)>
+      serial_number_cb =
+          [this](zivid_camera::CameraInfoSerialNumber::Request&, zivid_camera::CameraInfoSerialNumber::Response& res) {
+            res.serial_number = camera_.serialNumber().toString();
+            return true;
+          };
+  camera_info_serial_number_service_ = priv_.advertiseService("camera_info/serial_number", serial_number_cb);
 
   ROS_INFO("Zivid camera node is now ready!");
 }
@@ -420,18 +380,6 @@ bool zivid_camera::ZividCamera::captureServiceHandler(zivid_camera::Capture::Req
     ROS_ERROR("Capture called with 0 enabled frames!");
   }
   return false;
-}
-
-bool zivid_camera::ZividCamera::cameraInfoServiceHandler(zivid_camera::CameraInfo::Request&,
-                                                         zivid_camera::CameraInfo::Response& res)
-{
-  // TODO investigate if this should be individual services
-  res.model_name = camera_.modelName();
-  res.camera_revision = camera_.revision().toString();
-  res.serial_number = camera_.serialNumber().toString();
-  res.firmware_version = camera_.firmwareVersion();
-
-  return true;
 }
 
 void zivid_camera::ZividCamera::publishFrame(Zivid::Frame&& frame)

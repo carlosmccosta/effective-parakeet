@@ -85,9 +85,8 @@ add_service_files(
   srv
   FILES
   Capture.srv
-  CameraInfo.srv
-  BooleanState.srv
-  FloatState.srv
+  CameraInfoModelName.srv
+  CameraInfoSerialNumber.srv
 )
 
 add_custom_target(
