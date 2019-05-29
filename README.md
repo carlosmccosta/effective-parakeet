@@ -82,19 +82,17 @@ that the camera is discovered by your PC. You can also open Zivid Studio and con
 Close Zivid Studio before continuing with
 the rest of this guide. If the camera is not found, try our troubleshooting wiki at https://help.zivid.com.
 
-Start roscore
+First, start `roscore`.
 
 ```
-cd ~/catkin_ws
-source devel/setup.bash
+cd ~/catkin_ws && source devel/setup.bash
 roscore
 ```
 
-In a new terminal window start the `zivid_camera` node
+In a new terminal window start the `zivid_camera` node.
 
 ```
-cd ~/catkin_ws
-source devel/setup.bash
+cd ~/catkin_ws && source devel/setup.bash
 rosrun zivid_camera zivid_camera_node
 ```
 
@@ -104,8 +102,7 @@ to the camera. Look for a log line containing "Zivid camera node is now ready!".
 In a new terminal window start the `zivid_samples_capture` node.
 
 ```
-cd ~/catkin_ws
-source devel/setup.bash
+cd ~/catkin_ws && source devel/setup.bash
 rosrun zivid_samples zivid_samples_capture
 ```
 
@@ -128,7 +125,8 @@ Try to adjust the exposure time or the iris and observe that the images and poin
 [rviz](https://wiki.ros.org/rviz) changes.
 
 You can also use the launch script `sample_capture.launch` which does all of these
-steps for you, including starting rviz and rqt_reconfigure.
+steps for you, including starting [rviz](https://wiki.ros.org/rviz) and
+[rqt_reconfigure](https://wiki.ros.org/rqt_reconfigure).
 
 ```
 cd ~/catkin_ws && source devel/setup.bash
@@ -143,9 +141,9 @@ For sample code in C++ and Python, see the Samples section.
 
 `/zivid_camera/capture`
 > Invoke this service to trigger a capture. The capture settings are configured using
-> dynamic_reconfigure, see the section "Dynamic parameters" below. When more than 1 frame is enabled
-> then an HDR capture is performed. The resulting point cloud and depth/color images are published
-> as ROS topics.
+> [dynamic_reconfigure](https://wiki.ros.org/dynamic_reconfigure), see the section "Dynamic
+> parameters" below. When more than 1 frame is enabled an HDR capture is performed.
+> The resulting point cloud and depth/color images are published as ROS topics.
 
 `/zivid_camera/camera_info`
 
@@ -162,9 +160,9 @@ For sample code in C++ and Python, see the Samples section.
 
 `/zivid_camera/depth/image (sensor_msgs/Image)`
 > Depth image. Each pixel contains the z-value (along the camera Z axis) in meters.
-> The image is encoded as 32-bit float. Pixels where z-value is missing is denoted as NaN.
+> The image is encoded as 32-bit float. Pixels where z-value is missing are NaN.
 
-## Configuration of capture settings
+## Configuration
 
 The capture settings can be configured using [dynamic_reconfigure](https://wiki.ros.org/dynamic_reconfigure).
 
@@ -177,6 +175,7 @@ rosrun rqt_reconfigure rqt_reconfigure
 The capture settings available in the `zivid_camera` node matches the settings in the Zivid API.
 To become more familiar with the available settings in Zivid, run Zivid Studio or visit
 the [API reference](http://www.zivid.com/software/api-documentation) of the `Settings` class.
+Note that the available settings will depend on which version of Zivid Core you are using.
 
 The `zivid_camera` node supports both single-capture and HDR-capture. For more information about
 HDR capture, visit our [knowledge base](https://help.zivid.com) and search for HDR.
@@ -208,7 +207,12 @@ perform a single-capture. If more than one frame is enabled, the camera will per
 By default all frames are disabled. In order to capture a point cloud at least one frame
 needs to be enabled.
 
-### Dynamic parameters
+Note that the default, min and max values of the dynamic_reconfigure parameters can change dependent on
+what Zivid camera model you are using. Therefore you should not use the `__getMin()__`, `__getMax()__` and
+`__getDefault()__` methods of the auto-generated C++ config classes (`zivid_camera::CaptureGeneralConfig`
+and `zivid_camera::CaptureFrameConfig`).
+
+### List of dynamic reconfigure parameters
 
 `/zivid_camera/capture_general/*`
 > The settings here applies to all the frames. Contains filters and color balance.
@@ -217,24 +221,31 @@ TODO: extend documentation.
 
 `/zivid_camera/frame_settings/frame_<n>/enabled (bool)`
 > Controls if the frame `<n>` is enabled. When the frame is enabled it will be included
-> in /capture. The default value is false.
+> in captures. The default value is false.
 
 `/zivid_camera/frame_settings/frame_<n>/bidirectional`
->
+> Corresponds to the API setting [Zivid::Settings::Bidirectional](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Bidirectional.html).
+> Available since Zivid Core 1.2.
 
 `/zivid_camera/frame_settings/frame_<n>/brightness`
->
+> Corresponds to the API setting [Zivid::Settings::Brightness](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Brightness.html).
+> Available since Zivid Core 1.2.
 
 `/zivid_camera/frame_settings/frame_<n>/exposure_time`
->
+> Corresponds to the API setting [Zivid::Settings::ExposureTime](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1ExposureTime.html).
+> Available since Zivid Core 1.2.
 
 `/zivid_camera/frame_settings/frame_<n>/gain`
->
+> Corresponds to the API setting [Zivid::Settings::Gain](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Gain.html).
+> Available since Zivid Core 1.3.
 
 `/zivid_camera/frame_settings/frame_<n>/iris`
->
+> Corresponds to the API setting [Zivid::Settings::Iris](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Iris.html).
+> Available since Zivid Core 1.2.
 
 ## Launch Parameters
+
+The following parameters can be specified when starting the `zivid_camera` node.
 
 `serial_number (string)`
 > Specify the serial number of the Zivid camera to use. Important: When passing this value via
@@ -243,9 +254,9 @@ TODO: extend documentation.
 > Default: "".
 
 `file_camera_path (string)`
-> Specify the path to a file camera to use instead of a real Zivid camera. This can be used to develop without access
-> to hardware. The file camera returns the same point cloud for every capture.
-> [Download file camera.](https://www.zivid.com/software/ZividSampleData.zip)
+> Specify the path to a file camera to use instead of a real Zivid camera. This can be used to
+> develop without access to hardware. The file camera returns the same point cloud for every capture.
+> [Click here to download a file camera.](https://www.zivid.com/software/ZividSampleData.zip)
 > Default: "".
 
 ## Samples
@@ -256,16 +267,16 @@ how to use the Zivid camera in ROS. These samples can be used as a starting poin
 ### Sample Capture
 
 This sample performs a single-capture repeatedly. This sample shows how to configure the capture
-settings using `dynamic_reconfigure`, how to subscribe to the `zivid_camera/point_cloud` topic, and
-how to invoke the capture service.
+settings using [dynamic_reconfigure](https://wiki.ros.org/dynamic_reconfigure), how to subscribe to
+the `zivid_camera/point_cloud` topic, and how to invoke the `zivid_camera/capture` service.
 
-[C++](./zivid_samples/src/sample_capture.cpp)
+**C++** [(Source code)](./zivid_samples/src/sample_capture.cpp)
 ```
 cd ~/catkin_ws && source devel/setup.bash
 rosrun zivid_samples zivid_samples_capture
 ```
 
-[Python](./zivid_samples/scripts/sample_capture.py)
+**Python** [(Source code)](./zivid_samples/scripts/sample_capture.py)
 ```
 cd ~/catkin_ws && source devel/setup.bash
 rosrun zivid_samples scripts/sample_capture.py
