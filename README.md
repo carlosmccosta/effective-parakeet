@@ -314,6 +314,17 @@ you first start the first node, wait for it to be ready (for example, by waiting
 service to be advertised and available), then start the second node. This avoids any race conditions
 where both nodes may try to connect to the same camera at the same time.
 
-## FAQ
+## How to enable debugging
 
-TODO
+The node logs extra information at logger level debug, including the settings used when capturing.
+Enable debug logging to troubleshoot issues.
+
+```
+rosconsole set /<namespace>/zivid_camera ros.zivid_camera debug
+```
+
+For example, if ROS_NAMESPACE=zivid_camera,
+
+```
+rosconsole set /zivid_camera/zivid_camera ros.zivid_camera debug
+```
