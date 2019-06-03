@@ -267,8 +267,8 @@ The following parameters can be specified when starting the `zivid_camera` node.
 
 ## Samples
 
-In the zivid_samples package we have added several example nodes in C++ and Python that demonstrate
-how to use the Zivid camera in ROS. These samples can be used as a starting point for your own project.
+In the zivid_samples package we have added an example node in C++ and Python that demonstrate
+how to use the Zivid camera in ROS. The samples can be used as a starting point for your own project.
 
 ### Sample Capture
 

@@ -44,6 +44,7 @@ int main(int argc, char** argv)
 
   ros::Subscriber sub = n.subscribe("/zivid_camera/point_cloud", 10, onPointCloud);
 
+  ROS_INFO("Enable the reflection filter");
   dynamic_reconfigure::Client<zivid_camera::CaptureGeneralConfig> captureGeneralClient("/zivid_camera/"
                                                                                        "capture_general/");
   zivid_camera::CaptureGeneralConfig config;
