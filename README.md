@@ -7,7 +7,7 @@ THIS DRIVER IS WORK IN PROGRESS. IT WILL CHANGE BEFORE FINAL RELEASE.
 **Only Ubuntu 18.04 with ROS Melodic has been tested.**
 
 This is the official ROS package for Zivid 3D cameras. This enables usage of Zivid cameras as
-a node in ROS. Read more about Zivid at https://www.zivid.com/.
+a node/nodelet in ROS. Read more about Zivid at https://www.zivid.com/.
 
 ## Installation
 Follow this step-by-step guide to install the Zivid ROS driver on your system.
@@ -291,6 +291,14 @@ rosrun zivid_samples zivid_samples_capture
 ```
 cd ~/catkin_ws && source devel/setup.bash
 rosrun zivid_samples scripts/sample_capture.py
+```
+
+## Nodelet
+
+zivid_camera can also be launched as a [nodelet](http://wiki.ros.org/nodelet), for example:
+
+```
+ROS_NAMESPACE=zivid_camera rosrun nodelet nodelet standalone zivid_camera_nodelet
 ```
 
 ## FAQ
