@@ -93,7 +93,7 @@ In a new terminal window start the `zivid_camera` node.
 
 ```
 cd ~/catkin_ws && source devel/setup.bash
-rosrun zivid_camera zivid_camera_node
+ROS_NAMESPACE="zivid_camera" rosrun zivid_camera zivid_camera_node
 ```
 
 Check the output from the node to confirm that it finds and connects

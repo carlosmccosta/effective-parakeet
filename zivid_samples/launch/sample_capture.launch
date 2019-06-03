@@ -1,5 +1,5 @@
 <launch>
-    <node name="zivid_camera" pkg="zivid_camera" type="zivid_camera_node" output="screen"/>
+    <node name="zivid_camera" pkg="zivid_camera" type="zivid_camera_node" ns="zivid_camera" output="screen"/>
     <node name="zivid_samples_capture" pkg="zivid_samples" type="zivid_samples_capture" output="screen"/>
     <include file="$(find zivid_camera)/launch/configure.launch"/>
     <include file="$(find zivid_camera)/launch/visualize.launch"/>

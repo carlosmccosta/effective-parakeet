@@ -156,17 +156,25 @@ zivid_camera::ZividCamera::ZividCamera(ros::NodeHandle& nh)
   : nh_(nh)
   , priv_("~")
   , currentCaptureGeneralConfig_(decltype(currentCaptureGeneralConfig_)::__getDefault__())
-  , image_transport_(priv_)
+  , image_transport_(nh_)
   , frame_id_(0)
 {
+  if (ros::this_node::getNamespace() == "/")
+  {
+    // Require the user to specify the namespace that this node will run in.
+    // See REP-135 http://www.ros.org/reps/rep-0135.html
+    throw std::runtime_error("Zivid driver started in the global namespace ('/')! This is unsupported. "
+                             "Please specify namespace, fex. using the ROS_NAMESPACE environment variable.");
+  }
+
   ROS_INFO("Zivid ROS driver version %s", ZIVID_ROS_DRIVER_VERSION);
   ROS_INFO("Built towards Zivid API version %s", ZIVID_VERSION);
   ROS_INFO("Running with Zivid API version %s", Zivid::Version::libraryVersion().c_str());
   if (Zivid::Version::libraryVersion() != ZIVID_VERSION)
   {
-    throw std::string("Zivid library mismatch! The running Zivid version does not match the "
-                      "version this library was built towards. Hint: Try to clean and re-build your project "
-                      "from scratch.");
+    throw std::runtime_error("Zivid library mismatch! The running Zivid version does not match the "
+                             "version this library was built towards. Hint: Try to clean and re-build your project "
+                             "from scratch.");
   }
 
   std::string serial_number;
@@ -241,23 +249,23 @@ zivid_camera::ZividCamera::ZividCamera(ros::NodeHandle& nh)
   }
 
   ROS_INFO("Advertising topics");
-  point_cloud_publisher_ = priv_.advertise<sensor_msgs::PointCloud2>("point_cloud", 1);
+  point_cloud_publisher_ = nh_.advertise<sensor_msgs::PointCloud2>("point_cloud", 1);
   color_image_publisher_ = image_transport_.advertise("color/image_rect_color", 1);
   depth_image_publisher_ = image_transport_.advertise("depth/image", 1);
 
   ROS_INFO("Advertising services");
 
   capture_service_ = advertiseService<zivid_camera::Capture>(
-      priv_, "capture", [this](auto& req, auto& res) { return captureServiceHandler(req, res); });
+      nh_, "capture", [this](auto& req, auto& res) { return captureServiceHandler(req, res); });
 
   camera_info_model_name_service_ =
-      advertiseService<zivid_camera::CameraInfoModelName>(priv_, "camera_info/model_name", [this](auto&, auto& res) {
+      advertiseService<zivid_camera::CameraInfoModelName>(nh_, "camera_info/model_name", [this](auto&, auto& res) {
         res.model_name = camera_.modelName();
         return true;
       });
 
   camera_info_serial_number_service_ = advertiseService<zivid_camera::CameraInfoSerialNumber>(
-      priv_, "camera_info/serial_number", [this](auto&, auto& res) {
+      nh_, "camera_info/serial_number", [this](auto&, auto& res) {
         res.serial_number = camera_.serialNumber().toString();
         return true;
       });
@@ -270,7 +278,7 @@ zivid_camera::ZividCamera::~ZividCamera() = default;
 void zivid_camera::ZividCamera::setupCaptureGeneralConfigNode(const Zivid::Settings& defaultSettings)
 {
   capture_general_dr_server_ = std::make_unique<dynamic_reconfigure::Server<zivid_camera::CaptureGeneralConfig>>(
-      capture_general_dr_server_mutex_, ros::NodeHandle(priv_, "capture_general"));
+      capture_general_dr_server_mutex_, ros::NodeHandle(nh_, "capture_general"));
 
   // Setup min, max, default and current config
   zivid_camera::CaptureGeneralConfig minConfig;
@@ -294,7 +302,7 @@ void zivid_camera::ZividCamera::setupCaptureGeneralConfigNode(const Zivid::Setti
 
 void zivid_camera::ZividCamera::setupCaptureFrameConfigNode(int nodeIdx, const Zivid::Settings& defaultSettings)
 {
-  auto frame_config = std::make_unique<DRFrameConfig>("capture_frame/frame_" + std::to_string(nodeIdx), priv_);
+  auto frame_config = std::make_unique<DRFrameConfig>("capture_frame/frame_" + std::to_string(nodeIdx), nh_);
 
   // Setup min, max, default and current config
   zivid_camera::CaptureFrameConfig minConfig;

@@ -30,8 +30,8 @@ public:
 private:
   struct DRFrameConfig
   {
-    DRFrameConfig(const std::string& name, ros::NodeHandle& priv)
-      : name(name), dr_server(dr_server_mutex, ros::NodeHandle(priv, name)), config(CfgType::__getDefault__())
+    DRFrameConfig(const std::string& name, ros::NodeHandle& nh)
+      : name(name), dr_server(dr_server_mutex, ros::NodeHandle(nh, name)), config(CfgType::__getDefault__())
     {
     }
     using CfgType = zivid_camera::CaptureFrameConfig;
