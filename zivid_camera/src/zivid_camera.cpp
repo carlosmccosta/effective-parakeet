@@ -142,6 +142,14 @@ void fillCommonMsgFields(T& msg, const std_msgs::Header& header, const Zivid::Po
   msg.is_bigendian = big_endian();
 }
 
+template <class T>
+ros::ServiceServer advertiseService(ros::NodeHandle& nh, const std::string& name,
+                                    boost::function<bool(typename T::Request&, typename T::Response&)> cb)
+{
+  ROS_INFO("Advertisting service '%s'", name.c_str());
+  return nh.advertiseService(name, cb);
+}
+
 }  // namespace
 
 zivid_camera::ZividCamera::ZividCamera(ros::NodeHandle& nh)
@@ -238,29 +246,20 @@ zivid_camera::ZividCamera::ZividCamera(ros::NodeHandle& nh)
   depth_image_publisher_ = image_transport_.advertise("depth/image", 3);
 
   // Register services
-  const auto captureServiceName = "capture";
-  ROS_INFO("Registering capture service at '%s'", captureServiceName);
-  boost::function<bool(zivid_camera::Capture::Request&, zivid_camera::Capture::Response&)> capture_callback_func =
-      boost::bind(&zivid_camera::ZividCamera::captureServiceHandler, this, _1, _2);
-  capture_service_ = priv_.advertiseService(captureServiceName, capture_callback_func);
+  capture_service_ = advertiseService<zivid_camera::Capture>(
+      priv_, "capture", [this](auto& req, auto& res) { return captureServiceHandler(req, res); });
 
-  // TODO make nicer
-  boost::function<bool(zivid_camera::CameraInfoModelName::Request&, zivid_camera::CameraInfoModelName::Response&)>
-      model_name_cb =
-          [this](zivid_camera::CameraInfoModelName::Request&, zivid_camera::CameraInfoModelName::Response& res) {
-            res.model_name = camera_.modelName();
-            return true;
-          };
-  camera_info_model_name_service_ = priv_.advertiseService("camera_info/model_name", model_name_cb);
+  camera_info_model_name_service_ =
+      advertiseService<zivid_camera::CameraInfoModelName>(priv_, "camera_info/model_name", [this](auto&, auto& res) {
+        res.model_name = camera_.modelName();
+        return true;
+      });
 
-  // TODO make nicer
-  boost::function<bool(zivid_camera::CameraInfoSerialNumber::Request&, zivid_camera::CameraInfoSerialNumber::Response&)>
-      serial_number_cb =
-          [this](zivid_camera::CameraInfoSerialNumber::Request&, zivid_camera::CameraInfoSerialNumber::Response& res) {
-            res.serial_number = camera_.serialNumber().toString();
-            return true;
-          };
-  camera_info_serial_number_service_ = priv_.advertiseService("camera_info/serial_number", serial_number_cb);
+  camera_info_serial_number_service_ = advertiseService<zivid_camera::CameraInfoSerialNumber>(
+      priv_, "camera_info/serial_number", [this](auto&, auto& res) {
+        res.serial_number = camera_.serialNumber().toString();
+        return true;
+      });
 
   ROS_INFO("Zivid camera node is now ready!");
 }
