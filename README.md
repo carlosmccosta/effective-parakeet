@@ -88,7 +88,7 @@ In a new terminal window start the `zivid_camera` node.
 
 ```
 cd ~/catkin_ws && source devel/setup.bash
-ROS_NAMESPACE="zivid_camera" rosrun zivid_camera zivid_camera_node
+ROS_NAMESPACE=zivid_camera rosrun zivid_camera zivid_camera_node
 ```
 
 Check the output from the node to confirm that it finds and connects
@@ -313,9 +313,9 @@ you first start the first node, wait for it to be ready (for example, by waiting
 service to be advertised and available), then start the second node. This avoids any race conditions
 where both nodes may try to connect to the same camera at the same time.
 
-## How to enable debugging
+## How to enable debug logging
 
-The node logs extra information at logger level debug, including the settings used when capturing.
+The node logs extra information at level debug, including the settings used when capturing.
 Enable debug logging to troubleshoot issues.
 
 ```
