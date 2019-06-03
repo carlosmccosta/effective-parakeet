@@ -332,7 +332,7 @@ void zivid_camera::ZividCamera::onCaptureFrameConfigChanged(zivid_camera::Captur
 
 bool zivid_camera::ZividCamera::captureServiceHandler(zivid_camera::Capture::Request&, zivid_camera::Capture::Response&)
 {
-  ROS_INFO("%s", __func__);
+  ROS_DEBUG("%s", __func__);
 
   std::vector<Zivid::Settings> settings;
 
@@ -358,13 +358,14 @@ bool zivid_camera::ZividCamera::captureServiceHandler(zivid_camera::Capture::Req
     for (const auto& s : settings)
     {
       camera_.setSettings(s);
-      ROS_DEBUG("Calling capture with settings: %s", camera_.settings().toString().c_str());
+      ROS_DEBUG("Calling capture() with settings: %s", camera_.settings().toString().c_str());
       frames.emplace_back(camera_.capture());
     }
 
     auto frame = [&]() {
       if (frames.size() > 1)
       {
+        ROS_DEBUG("Calling Zivid::HDR::combineFrames with %zd frames", frames.size());
         return Zivid::HDR::combineFrames(begin(frames), end(frames));
       }
       else
