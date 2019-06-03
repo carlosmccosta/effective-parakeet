@@ -195,14 +195,22 @@ zivid_camera::ZividCamera::ZividCamera(ros::NodeHandle& nh)
   else
   {
     auto cameras = zivid_.cameras();
+    ROS_INFO("%zu cameras found", cameras.size());
     if (cameras.empty())
     {
       throw std::runtime_error("No cameras found. Ensure that the camera is connected to the USB3 port on your PC.");
     }
     else if (serial_number.empty())
     {
-      ROS_INFO("Selecting first camera");
-      camera_ = cameras[0];
+      camera_ = [&]() {
+        ROS_INFO("Selecting first available camera");
+        for (auto& c : cameras)
+        {
+          if (c.state().isAvailable())
+            return c;
+        }
+        throw std::runtime_error("No available cameras found. Is the camera in use by another process?");
+      }();
     }
     else
     {
