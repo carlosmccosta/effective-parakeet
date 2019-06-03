@@ -79,8 +79,8 @@ catkin build
 Connect the Zivid Camera to your USB3 port on your PC. You can use the ZividListCameras tool
 available in the zivid-tools package to confirm that your system has been configured correctly, and
 that the camera is discovered by your PC. You can also open Zivid Studio and connect to the camera.
-Close Zivid Studio before continuing with
-the rest of this guide. If the camera is not found, try our troubleshooting wiki at https://help.zivid.com.
+Close Zivid Studio before continuing with the rest of this guide. If the camera is not found, visit
+our [troubleshooting wiki](https://help.zivid.com).
 
 First, start `roscore`.
 
@@ -206,17 +206,17 @@ frame. By default `<n>` can be 0 to 9 for a total of 10 configured frames. The t
 can be configured using the launch parameter `num_capture_frames` (see below).
 
 `/zivid_camera/frame_settings/frame_<n>/enabled` controls if the frame `<n>` is enabled. When the
-`/zivid_camera/capture/` service is invoked, if just one frame is enabled, the camera will
-perform a single-capture. If more than one frame is enabled, the camera will perform an HDR capture.
+`/zivid_camera/capture/` service is invoked, if one frame is enabled, the camera will perform a
+single-capture. If more than one frame is enabled, the camera will perform an HDR capture.
 
 By default all frames are disabled. In order to capture a point cloud at least one frame needs to be
 enabled.
 
-Note that the default, min and max values of the dynamic_reconfigure parameters can change dependent on
+Note that the min, max and default value of the dynamic_reconfigure parameters can change dependent on
 what Zivid camera model you are using. Therefore you should not use the `__getMin()__`, `__getMax()__` and
 `__getDefault()__` methods of the auto-generated C++ config classes (`zivid_camera::CaptureGeneralConfig`
-and `zivid_camera::CaptureFrameConfig`). Instead you should query for the default values. See the sample code
-for how to do this.
+and `zivid_camera::CaptureFrameConfig`). Instead you should query the server for the default values.
+See the sample code for how to do this.
 
 ### List of dynamic reconfigure parameters
 
@@ -260,9 +260,9 @@ The following parameters can be specified when starting the `zivid_camera` node.
 > Default: "".
 
 `num_capture_frames (int)`
-> Specify the number of capture_frame dynamic_reconfigure nodes that are created during startup of the
-> node. This number defines the maximum number of frames in a capture. If you need to perform HDR
-> with many frames then increase this number. This parameter is optional. Default: 10.
+> Specify the number of dynamic_reconfigure capture_frame nodes that are created during startup of
+> the node. This number defines the maximum number of frames in a capture. If you need to perform
+> HDR with more than 10 frames then increase this number. This parameter is optional. Default: 10.
 
 `file_camera_path (string)`
 > Specify the path to a file camera to use instead of a real Zivid camera. This can be used to
@@ -300,6 +300,24 @@ zivid_camera can also be launched as a [nodelet](http://wiki.ros.org/nodelet), f
 ```
 ROS_NAMESPACE=zivid_camera rosrun nodelet nodelet standalone zivid_camera_nodelet
 ```
+
+## Using multiple cameras
+
+You can use multiple Zivid cameras simultaneously by starting one node per camera and specifying
+unique namespaces:
+
+```
+ROS_NAMESPACE=camera1 rosrun zivid_camera zivid_camera_node
+```
+
+```
+ROS_NAMESPACE=camera2 rosrun zivid_camera zivid_camera_node
+```
+
+By default the zivid_camera node will connect to the first available/unused camera. We recommend that
+you first start the first node, wait for it to be ready (for example, by waiting for the `capture`
+service to be advertised and available), then start the second node. This avoids any race conditions
+where both nodes may try to connect to the same camera at the same time.
 
 ## FAQ
 
