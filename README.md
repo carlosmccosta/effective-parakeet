@@ -18,21 +18,16 @@ This package supports Ubuntu 18.04 and ROS version Melodic Morenia.
 #### ROS
 Follow guide at http://wiki.ros.org/ROS/Installation to install ROS Melodic.
 
-Also install catkin.
+Also install catkin and git.
 
 ```
 sudo apt update
-sudo apt install python-catkin-tools
-```
-
-#### Git
-```
-sudo apt install git
+sudo apt install python-catkin-tools git
 ```
 
 #### OpenCL
 An OpenCL 1.2 compatible GPU and OpenCL drivers are required by the Zivid Core library.
-Follow guide at https://help.zivid.com to install OpenCL.
+Follow the guide at https://help.zivid.com to install OpenCL (search for Install OpenCL).
 
 #### Zivid Core Library
 Download and install the "Toshiba Teli driver" and "Zivid Core" debian packages from
@@ -63,7 +58,7 @@ git clone https://github.com/nedrebo/effective-parakeet.git
 Install dependencies.
 ```
 cd ~/catkin_ws
-apt update
+sudo apt update
 rosdep update
 rosdep install --from-paths src --ignore-src -r -y
 ```
@@ -111,7 +106,7 @@ capture repeatedly. You can visualize the point cloud, color image and depth ima
 
 ```
 cd ~/catkin_ws && source devel/setup.bash
-rosrun rviz rviz -d $(rospack find zivid_camera)/rviz/camera_view.rviz
+roslaunch zivid_camera visualize.launch
 ```
 
 You can adjust the capture settings using [rqt_reconfigure](https://wiki.ros.org/rqt_reconfigure).
