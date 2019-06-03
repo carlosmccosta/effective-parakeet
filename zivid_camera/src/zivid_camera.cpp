@@ -159,6 +159,9 @@ zivid_camera::ZividCamera::ZividCamera(ros::NodeHandle& nh)
   , image_transport_(nh_)
   , frame_id_(0)
 {
+  ROS_INFO("Zivid ROS driver version %s", ZIVID_ROS_DRIVER_VERSION);
+
+  ROS_INFO("Node's namespace is '%s'", nh_.getNamespace().c_str());
   if (ros::this_node::getNamespace() == "/")
   {
     // Require the user to specify the namespace that this node will run in.
@@ -167,7 +170,6 @@ zivid_camera::ZividCamera::ZividCamera(ros::NodeHandle& nh)
                              "Please specify namespace, fex. using the ROS_NAMESPACE environment variable.");
   }
 
-  ROS_INFO("Zivid ROS driver version %s", ZIVID_ROS_DRIVER_VERSION);
   ROS_INFO("Built towards Zivid API version %s", ZIVID_VERSION);
   ROS_INFO("Running with Zivid API version %s", Zivid::Version::libraryVersion().c_str());
   if (Zivid::Version::libraryVersion() != ZIVID_VERSION)
