@@ -202,7 +202,8 @@ The available capture settings are split into subtrees:
 
 `/zivid/capture_general` contains common settings for all frames (as of Core version 1.3 this is all the
 filters and color balance). `/zivid_camera/frame_settings/frame_<n>/` contains settings for an individual
-frame. `<n>` can be 0 to 9 for a total of 10 configured frames.
+frame. By default `<n>` can be 0 to 9 for a total of 10 configured frames. The total number of frames
+can be configured using the launch parameter `num_capture_frames` (see below).
 
 `/zivid_camera/frame_settings/frame_<n>/enabled` controls if the frame `<n>` is enabled. When the
 `/zivid_camera/capture/` service is invoked, if just one frame is enabled, the camera will
@@ -214,7 +215,8 @@ enabled.
 Note that the default, min and max values of the dynamic_reconfigure parameters can change dependent on
 what Zivid camera model you are using. Therefore you should not use the `__getMin()__`, `__getMax()__` and
 `__getDefault()__` methods of the auto-generated C++ config classes (`zivid_camera::CaptureGeneralConfig`
-and `zivid_camera::CaptureFrameConfig`).
+and `zivid_camera::CaptureFrameConfig`). Instead you should query for the default values. See the sample code
+for how to do this.
 
 ### List of dynamic reconfigure parameters
 
@@ -236,7 +238,7 @@ TODO: extend documentation.
 > Available since Zivid Core 1.2.
 
 `/zivid_camera/frame_settings/frame_<n>/exposure_time (double)`
-> Corresponds to the API setting [Zivid::Settings::ExposureTime](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1ExposureTime.html). Per ROS convention it is given as seconds instead of milliseconds.
+> Corresponds to the API setting [Zivid::Settings::ExposureTime](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1ExposureTime.html). Per ROS convention it is specified in seconds instead of milliseconds.
 > Available since Zivid Core 1.2.
 
 `/zivid_camera/frame_settings/frame_<n>/gain (double)`
