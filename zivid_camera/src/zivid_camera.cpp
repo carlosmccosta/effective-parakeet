@@ -240,14 +240,13 @@ zivid_camera::ZividCamera::ZividCamera(ros::NodeHandle& nh)
     setupCaptureFrameConfigNode(i, cameraSettings);
   }
 
-  // Register topics
-  const auto pointCloudTopic = "point_cloud";
-  ROS_INFO("Registering point cloud topic at '%s'", pointCloudTopic);
-  point_cloud_publisher_ = priv_.advertise<sensor_msgs::PointCloud2>(pointCloudTopic, 1);
-  color_image_publisher_ = image_transport_.advertise("color/image_rect_color", 3);  // TODO 3?
-  depth_image_publisher_ = image_transport_.advertise("depth/image", 3);
+  ROS_INFO("Advertising topics");
+  point_cloud_publisher_ = priv_.advertise<sensor_msgs::PointCloud2>("point_cloud", 1);
+  color_image_publisher_ = image_transport_.advertise("color/image_rect_color", 1);
+  depth_image_publisher_ = image_transport_.advertise("depth/image", 1);
 
-  // Register services
+  ROS_INFO("Advertising services");
+
   capture_service_ = advertiseService<zivid_camera::Capture>(
       priv_, "capture", [this](auto& req, auto& res) { return captureServiceHandler(req, res); });
 
