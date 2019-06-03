@@ -31,7 +31,7 @@ private:
   struct DRFrameConfig
   {
     DRFrameConfig(const std::string& name, ros::NodeHandle& priv)
-      : name(name), dr_server(dr_server_mutex, ros::NodeHandle(priv, name))
+      : name(name), dr_server(dr_server_mutex, ros::NodeHandle(priv, name)), config(CfgType::__getDefault__())
     {
     }
     using CfgType = zivid_camera::CaptureFrameConfig;
@@ -62,7 +62,6 @@ private:
   image_transport::Publisher color_image_publisher_;
   image_transport::Publisher depth_image_publisher_;
   ros::ServiceServer capture_service_;
-  std::vector<ros::ServiceServer> generated_servers_;
   ros::ServiceServer camera_info_serial_number_service_;
   ros::ServiceServer camera_info_model_name_service_;
   std::vector<std::unique_ptr<DRFrameConfig>> frame_configs_;

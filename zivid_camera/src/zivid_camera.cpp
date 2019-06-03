@@ -155,7 +155,7 @@ ros::ServiceServer advertiseService(ros::NodeHandle& nh, const std::string& name
 zivid_camera::ZividCamera::ZividCamera(ros::NodeHandle& nh)
   : nh_(nh)
   , priv_("~")
-  , currentCaptureGeneralConfig_(zivid_camera::CaptureGeneralConfig::__getDefault__())
+  , currentCaptureGeneralConfig_(decltype(currentCaptureGeneralConfig_)::__getDefault__())
   , image_transport_(priv_)
   , frame_id_(0)
 {
