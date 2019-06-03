@@ -170,10 +170,13 @@ zivid_camera::ZividCamera::ZividCamera(ros::NodeHandle& nh)
   }
 
   std::string serial_number;
-  priv_.param<std::string>("serial_number", serial_number, "");
+  priv_.param<decltype(serial_number)>("serial_number", serial_number, "");
+
+  int num_capture_frames;
+  priv_.param<decltype(num_capture_frames)>("num_capture_frames", num_capture_frames, 10);
 
   std::string file_camera_path;
-  priv_.param<std::string>("file_camera_path", file_camera_path, "");
+  priv_.param<decltype(file_camera_path)>("file_camera_path", file_camera_path, "");
   const bool file_camera_mode = !file_camera_path.empty();
 
   if (file_camera_mode)
@@ -231,9 +234,8 @@ zivid_camera::ZividCamera::ZividCamera(ros::NodeHandle& nh)
   const auto cameraSettings = camera_.settings();
   setupCaptureGeneralConfigNode(cameraSettings);
 
-  ROS_INFO("Setting up capture_frame dynamic_reconfigure nodes");
-  // TODO be able to configure num frames
-  for (std::size_t i = 0; i < 10; i++)
+  ROS_INFO("Setting up %d capture_frame dynamic_reconfigure nodes", num_capture_frames);
+  for (int i = 0; i < num_capture_frames; i++)
   {
     setupCaptureFrameConfigNode(i, cameraSettings);
   }
@@ -291,7 +293,7 @@ void zivid_camera::ZividCamera::setupCaptureGeneralConfigNode(const Zivid::Setti
       boost::bind(&zivid_camera::ZividCamera::onCaptureGeneralConfigChanged, this, _1, _2));
 }
 
-void zivid_camera::ZividCamera::setupCaptureFrameConfigNode(std::size_t nodeIdx, const Zivid::Settings& defaultSettings)
+void zivid_camera::ZividCamera::setupCaptureFrameConfigNode(int nodeIdx, const Zivid::Settings& defaultSettings)
 {
   auto frame_config = std::make_unique<DRFrameConfig>("capture_frame/frame_" + std::to_string(nodeIdx), priv_);
 

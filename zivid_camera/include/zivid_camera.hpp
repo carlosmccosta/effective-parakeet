@@ -42,7 +42,7 @@ private:
   };
 
   void setupCaptureGeneralConfigNode(const Zivid::Settings& cameraSettings);
-  void setupCaptureFrameConfigNode(std::size_t nodeIdx, const Zivid::Settings& cameraSettings);
+  void setupCaptureFrameConfigNode(int nodeIdx, const Zivid::Settings& cameraSettings);
   void onCaptureGeneralConfigChanged(zivid_camera::CaptureGeneralConfig& config, uint32_t level);
   void onCaptureFrameConfigChanged(zivid_camera::CaptureFrameConfig& config, uint32_t level,
                                    DRFrameConfig& frameConfig);

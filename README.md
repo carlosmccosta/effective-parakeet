@@ -257,11 +257,16 @@ The following parameters can be specified when starting the `zivid_camera` node.
 > This parameter is optional. By default the driver will connect to the first available camera.
 > Default: "".
 
+`num_capture_frames (int)`
+> Specify the number of capture_frame dynamic_reconfigure nodes that are created during startup of the
+> node. This number defines the maximum number of frames in a capture. If you need to perform HDR
+> with many frames then increase this number. This parameter is optional. Default: 10.
+
 `file_camera_path (string)`
 > Specify the path to a file camera to use instead of a real Zivid camera. This can be used to
 > develop without access to hardware. The file camera returns the same point cloud for every capture.
 > [Click here to download a file camera.](https://www.zivid.com/software/ZividSampleData.zip)
-> Default: "".
+> This parameter is optional. Default: "".
 
 ## Samples
 
