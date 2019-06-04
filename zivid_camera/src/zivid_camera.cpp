@@ -1,5 +1,7 @@
 #include "zivid_camera.hpp"
-#include "parse_settings.hpp"
+#include "CaptureGeneralConfigUtils.h"
+#include "CaptureFrameConfigUtils.h"
+
 #include "zivid_camera/CameraInfoModelName.h"
 #include "zivid_camera/CameraInfoSerialNumber.h"
 
@@ -16,103 +18,6 @@
 
 namespace
 {
-using fsec = std::chrono::duration<double>;
-
-void applyConfigToZividSettings(const zivid_camera::CaptureGeneralConfig& cfg, Zivid::Settings& s)
-{
-  // TODO autogen this.
-  s.set(Zivid::Settings::RedBalance{ cfg.red_balance });
-  s.set(Zivid::Settings::BlueBalance{ cfg.blue_balance });
-  s.set(Zivid::Settings::Filters::Reflection::Enabled{ cfg.filters_reflection_enabled });
-  s.set(Zivid::Settings::Filters::Saturated::Enabled{ cfg.filters_saturated_enabled });
-  s.set(Zivid::Settings::Filters::Gaussian::Enabled{ cfg.filters_gaussian_enabled });
-  s.set(Zivid::Settings::Filters::Gaussian::Sigma{ cfg.filters_gaussian_sigma });
-  s.set(Zivid::Settings::Filters::Contrast::Enabled{ cfg.filters_contrast_enabled });
-  s.set(Zivid::Settings::Filters::Contrast::Threshold{ cfg.filters_contrast_threshold });
-  s.set(Zivid::Settings::Filters::Outlier::Enabled{ cfg.filters_outlier_enabled });
-  s.set(Zivid::Settings::Filters::Outlier::Threshold{ cfg.filters_outlier_threshold });
-}
-
-void applyConfigToZividSettings(const zivid_camera::CaptureFrameConfig& cfg, Zivid::Settings& s)
-{
-  // TODO autogen this.
-  s.set(Zivid::Settings::Iris{ static_cast<std::size_t>(cfg.iris) });
-  s.set(Zivid::Settings::ExposureTime{
-      std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::duration<double>(cfg.exposure_time)) });
-  s.set(Zivid::Settings::Brightness{ cfg.brightness });
-  s.set(Zivid::Settings::Gain{ cfg.gain });
-  s.set(Zivid::Settings::Bidirectional{ cfg.bidirectional });
-}
-
-void setConfigMinFromZividSettings(const Zivid::Settings& s, zivid_camera::CaptureGeneralConfig& cfg)
-{
-  // TODO autogen this.
-  cfg = zivid_camera::CaptureGeneralConfig::__getMin__();
-  cfg.red_balance = s.redBalance().range().min();
-  cfg.blue_balance = s.blueBalance().range().min();
-  cfg.filters_gaussian_sigma = s.filters().gaussian().sigma().range().min();
-  cfg.filters_contrast_threshold = s.filters().contrast().threshold().range().min();
-  cfg.filters_outlier_threshold = s.filters().outlier().threshold().range().min();
-}
-
-void setConfigMaxFromZividSettings(const Zivid::Settings& s, zivid_camera::CaptureGeneralConfig& cfg)
-{
-  // TODO autogen this.
-  cfg = zivid_camera::CaptureGeneralConfig::__getMax__();
-  cfg.red_balance = s.redBalance().range().max();
-  cfg.blue_balance = s.blueBalance().range().max();
-  cfg.filters_gaussian_sigma = s.filters().gaussian().sigma().range().max();
-  cfg.filters_contrast_threshold = s.filters().contrast().threshold().range().max();
-  cfg.filters_outlier_threshold = s.filters().outlier().threshold().range().max();
-}
-
-void setConfigDefaultFromZividSettings(const Zivid::Settings& s, zivid_camera::CaptureGeneralConfig& cfg)
-{
-  // TODO autogen this.
-  cfg = zivid_camera::CaptureGeneralConfig::__getDefault__();
-  cfg.red_balance = s.redBalance().value();
-  cfg.blue_balance = s.blueBalance().value();
-  cfg.filters_reflection_enabled = s.filters().reflection().isEnabled().value();
-  cfg.filters_saturated_enabled = s.filters().saturated().isEnabled().value();
-  cfg.filters_gaussian_enabled = s.filters().gaussian().isEnabled().value();
-  cfg.filters_gaussian_sigma = s.filters().gaussian().sigma().value();
-  cfg.filters_contrast_enabled = s.filters().contrast().isEnabled().value();
-  cfg.filters_contrast_threshold = s.filters().contrast().threshold().value();
-  cfg.filters_outlier_enabled = s.filters().outlier().isEnabled().value();
-  cfg.filters_outlier_threshold = s.filters().outlier().threshold().value();
-}
-
-void setConfigMinFromZividSettings(const Zivid::Settings& s, zivid_camera::CaptureFrameConfig& cfg)
-{
-  // TODO autogen this.
-  cfg = zivid_camera::CaptureFrameConfig::__getMin__();
-  cfg.iris = s.iris().range().min();
-  cfg.exposure_time = std::chrono::duration_cast<fsec>(s.exposureTime().range().min()).count();
-  cfg.brightness = s.brightness().range().min();
-  cfg.gain = s.gain().range().min();
-}
-
-void setConfigMaxFromZividSettings(const Zivid::Settings& s, zivid_camera::CaptureFrameConfig& cfg)
-{
-  // TODO autogen this.
-  cfg = zivid_camera::CaptureFrameConfig::__getMax__();
-  cfg.iris = s.iris().range().max();
-  cfg.exposure_time = std::chrono::duration_cast<fsec>(s.exposureTime().range().max()).count();
-  cfg.brightness = s.brightness().range().max();
-  cfg.gain = s.gain().range().max();
-}
-
-void setConfigDefaultFromZividSettings(const Zivid::Settings& s, zivid_camera::CaptureFrameConfig& cfg)
-{
-  // TODO autogen this.
-  cfg = zivid_camera::CaptureFrameConfig::__getDefault__();
-  cfg.iris = s.iris().value();
-  cfg.exposure_time = std::chrono::duration_cast<fsec>(s.exposureTime().value()).count();
-  cfg.brightness = s.brightness().value();
-  cfg.gain = s.gain().value();
-  cfg.bidirectional = s.bidirectional().value();
-}
-
 sensor_msgs::PointField createPointField(std::string name, uint32_t offset, uint8_t datatype, uint32_t count)
 {
   sensor_msgs::PointField point_field;
@@ -291,16 +196,13 @@ void zivid_camera::ZividCamera::setupCaptureGeneralConfigNode(const Zivid::Setti
       capture_general_dr_server_mutex_, ros::NodeHandle(nh_, "capture_general"));
 
   // Setup min, max, default and current config
-  zivid_camera::CaptureGeneralConfig minConfig;
-  setConfigMinFromZividSettings(defaultSettings, minConfig);
+  const auto minConfig = getCaptureGeneralConfigMinFromZividSettings(defaultSettings);
   capture_general_dr_server_->setConfigMin(minConfig);
 
-  zivid_camera::CaptureGeneralConfig maxConfig;
-  setConfigMaxFromZividSettings(defaultSettings, maxConfig);
+  const auto maxConfig = getCaptureGeneralConfigMaxFromZividSettings(defaultSettings);
   capture_general_dr_server_->setConfigMax(maxConfig);
 
-  zivid_camera::CaptureGeneralConfig defaultConfig;
-  setConfigDefaultFromZividSettings(defaultSettings, defaultConfig);
+  const auto defaultConfig = getCaptureGeneralConfigDefaultFromZividSettings(defaultSettings);
   capture_general_dr_server_->setConfigDefault(defaultConfig);
   capture_general_dr_server_->updateConfig(defaultConfig);
 
@@ -315,16 +217,13 @@ void zivid_camera::ZividCamera::setupCaptureFrameConfigNode(int nodeIdx, const Z
   auto frame_config = std::make_unique<DRFrameConfig>("capture_frame/frame_" + std::to_string(nodeIdx), nh_);
 
   // Setup min, max, default and current config
-  zivid_camera::CaptureFrameConfig minConfig;
-  setConfigMinFromZividSettings(defaultSettings, minConfig);
+  const auto minConfig = getCaptureFrameConfigMinFromZividSettings(defaultSettings);
   frame_config->dr_server.setConfigMin(minConfig);
 
-  zivid_camera::CaptureFrameConfig maxConfig;
-  setConfigMaxFromZividSettings(defaultSettings, maxConfig);
+  const auto maxConfig = getCaptureFrameConfigMaxFromZividSettings(defaultSettings);
   frame_config->dr_server.setConfigMax(maxConfig);
 
-  zivid_camera::CaptureFrameConfig defaultConfig;
-  setConfigDefaultFromZividSettings(defaultSettings, defaultConfig);
+  const auto defaultConfig = getCaptureFrameConfigDefaultFromZividSettings(defaultSettings);
   frame_config->dr_server.setConfigDefault(defaultConfig);
   frame_config->dr_server.updateConfig(defaultConfig);
 
@@ -355,7 +254,7 @@ bool zivid_camera::ZividCamera::captureServiceHandler(zivid_camera::Capture::Req
   std::vector<Zivid::Settings> settings;
 
   Zivid::Settings baseSetting = camera_.settings();
-  applyConfigToZividSettings(currentCaptureGeneralConfig_, baseSetting);
+  applyCaptureGeneralConfigToZividSettings(currentCaptureGeneralConfig_, baseSetting);
 
   for (const auto& frame_config : frame_configs_)
   {
@@ -363,7 +262,7 @@ bool zivid_camera::ZividCamera::captureServiceHandler(zivid_camera::Capture::Req
     {
       ROS_DEBUG("Config %s is enabled", frame_config->name.c_str());
       Zivid::Settings s{ baseSetting };
-      applyConfigToZividSettings(frame_config->config, s);
+      applyCaptureFrameConfigToZividSettings(frame_config->config, s);
       settings.push_back(s);
     }
   }

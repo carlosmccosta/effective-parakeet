@@ -76,8 +76,8 @@ target_link_libraries(${PROJECT_NAME}_settings_generator Zivid::Core)
 # )
 
 generate_dynamic_reconfigure_options(
-    #cfg/ZividCamera.cfg
-    ${CMAKE_CURRENT_BINARY_DIR}/ZividSettings.cfg
+  ${CMAKE_CURRENT_BINARY_DIR}/CaptureGeneral.cfg
+  ${CMAKE_CURRENT_BINARY_DIR}/CaptureFrame.cfg
 )
 
 ## Generate services in the 'srv' folder
@@ -93,12 +93,15 @@ add_service_files(
 add_custom_target(
     ${PROJECT_NAME}_generator
     COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/state_srv_files
-    COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/zivid_generated_headers
+    COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/generated_headers
     COMMAND ${PROJECT_NAME}_settings_generator
-    COMMAND chmod a+x ${CMAKE_CURRENT_BINARY_DIR}/ZividSettings.cfg
-    BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/ZividSettings.cfg
+    COMMAND chmod a+x ${CMAKE_CURRENT_BINARY_DIR}/CaptureGeneral.cfg
+    COMMAND chmod a+x ${CMAKE_CURRENT_BINARY_DIR}/CaptureFrame.cfg
+    BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/CaptureGeneral.cfg
+               ${CMAKE_CURRENT_BINARY_DIR}/CaptureFrame.cfg
     COMMENT "Running generator"
 )
+
 add_dependencies(${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generator)
 add_dependencies(${PROJECT_NAME}_gencfg ${PROJECT_NAME}_generator)
 
@@ -132,6 +135,7 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(
   include
+  ${CMAKE_CURRENT_BINARY_DIR}/generated_headers/
   ${catkin_INCLUDE_DIRS}
 )
 
