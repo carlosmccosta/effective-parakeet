@@ -62,7 +62,7 @@ zivid_camera::ZividCamera::ZividCamera(ros::NodeHandle& nh)
   , priv_("~")
   , currentCaptureGeneralConfig_(decltype(currentCaptureGeneralConfig_)::__getDefault__())
   , image_transport_(nh_)
-  , frame_id_(0)
+  , header_seq_(0)
 {
   ROS_INFO("Zivid ROS driver version %s", ZIVID_ROS_DRIVER_VERSION);
 
@@ -89,6 +89,8 @@ zivid_camera::ZividCamera::ZividCamera(ros::NodeHandle& nh)
 
   int num_capture_frames;
   priv_.param<decltype(num_capture_frames)>("num_capture_frames", num_capture_frames, 10);
+
+  priv_.param<decltype(frame_id_)>("frame_id", frame_id_, "zivid_optical_frame");
 
   std::string file_camera_path;
   priv_.param<decltype(file_camera_path)>("file_camera_path", file_camera_path, "");
@@ -311,9 +313,9 @@ void zivid_camera::ZividCamera::publishFrame(Zivid::Frame&& frame)
     auto point_cloud = frame.getPointCloud();
 
     std_msgs::Header header;
-    header.seq = frame_id_++;
+    header.seq = header_seq_++;
     header.stamp = ros::Time::now();
-    header.frame_id = "zivid_optical_frame";
+    header.frame_id = frame_id_;
 
     if (hasPointCloudSubs)
     {

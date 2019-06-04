@@ -67,7 +67,8 @@ private:
   std::vector<std::unique_ptr<DRFrameConfig>> frame_configs_;
   Zivid::Application zivid_;
   Zivid::Camera camera_;
-  int frame_id_;
+  std::string frame_id_;
+  int header_seq_;
 };
 }  // namespace zivid_camera
 
