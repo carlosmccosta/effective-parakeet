@@ -7,7 +7,8 @@ THIS DRIVER IS WORK IN PROGRESS. IT WILL CHANGE BEFORE FINAL RELEASE.
 **Only Ubuntu 18.04 with ROS Melodic has been tested.**
 
 This is the official ROS package for Zivid 3D cameras. This enables usage of Zivid cameras as
-a node/nodelet in ROS. Read more about Zivid at https://www.zivid.com/.
+a node/nodelet in ROS. Read more about Zivid at (our website)[https://www.zivid.com/]. Please report
+any issues or feature requests in the issue tracker.
 
 ## Installation
 Follow this step-by-step guide to install the Zivid ROS driver on your system.
@@ -37,11 +38,9 @@ Optionally install the "Zivid Studio" and "Zivid Tools" packages as well. They a
 driver but can be useful for testing that your system has been setup correctly and that
 the camera is detected.
 
-### Building Zivid ROS driver
+#### Create catkin workspace
 
-#### Setting up the catkin workspace
-
-If you have not created a catkin workspace, this needs to be done first.
+If you have not created a catkin workspace, this needs to be done as well.
 ```
 source /opt/ros/melodic/setup.bash
 mkdir -p ~/catkin_ws/src
@@ -49,7 +48,9 @@ cd ~/catkin_ws
 catkin build
 ```
 
-Clone the Zivid ROS project into the src/ directory.
+### Building Zivid ROS driver
+
+Clone the Zivid ROS project into the ~/catkin_ws/src directory.
 ```
 cd ~/catkin_ws/src
 git clone https://github.com/nedrebo/effective-parakeet.git
@@ -154,12 +155,12 @@ For sample code in C++ and Python, see the Samples section.
 > and r, g, b (colors). The output is in the camera's optical frame, where x is right, y is
 > down and z is forward.
 
-`rgb/image_rect_color (sensor_msgs/Image)`
-> RGB image. The image is encoded as "rgb8".
-
 `depth/image_rect (sensor_msgs/Image)`
 > Depth image. Each pixel contains the z-value (along the camera Z axis) in meters.
 > The image is encoded as 32-bit float. Pixels where z-value is missing are NaN.
+
+`rgb/image_rect_color (sensor_msgs/Image)`
+> RGB image. The image is encoded as "rgb8".
 
 ## Configuration
 
@@ -264,7 +265,6 @@ The following parameters can be specified when starting the `zivid_camera` node.
 > Specify the path to a file camera to use instead of a real Zivid camera. This can be used to
 > develop without access to hardware. The file camera returns the same point cloud for every capture.
 > [Click here to download a file camera.](https://www.zivid.com/software/ZividSampleData.zip)
-> This parameter is optional. Default: "".
 
 ## Samples
 
@@ -317,7 +317,7 @@ where both nodes may try to connect to the same camera at the same time.
 
 ## How to enable debug logging
 
-The node logs extra information at level debug, including the settings used when capturing.
+The node logs extra information at log level debug, including the settings used when capturing.
 Enable debug logging to troubleshoot issues.
 
 ```
