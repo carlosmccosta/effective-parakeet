@@ -148,16 +148,16 @@ For sample code in C++ and Python, see the Samples section.
 
 ## Topics
 
-`point_cloud (sensor_msgs/PointCloud2)`
+`depth/points (sensor_msgs/PointCloud2)`
 > Point cloud data. Each time a capture is invoked the resulting point cloud is published
 > on this topic. The included point fields are x, y, z (in meters), c (contrast value),
 > and r, g, b (colors). The output is in the camera's optical frame, where x is right, y is
 > down and z is forward.
 
-`color/image_rect_color (sensor_msgs/Image)`
+`rgb/image_rect_color (sensor_msgs/Image)`
 > RGB image. The image is encoded as "rgb8".
 
-`depth/image (sensor_msgs/Image)`
+`depth/image_rect (sensor_msgs/Image)`
 > Depth image. Each pixel contains the z-value (along the camera Z axis) in meters.
 > The image is encoded as 32-bit float. Pixels where z-value is missing are NaN.
 
@@ -273,7 +273,7 @@ how to use the Zivid camera in ROS. The samples can be used as a starting point 
 
 This sample performs a single-capture repeatedly. This sample shows how to configure the capture
 settings using [dynamic_reconfigure](https://wiki.ros.org/dynamic_reconfigure), how to subscribe to
-the `point_cloud` topic, and how to invoke the `capture` service.
+the `depth/points` topic, and how to invoke the `capture` service.
 
 **C++** [(Source code)](./zivid_samples/src/sample_capture.cpp)
 ```

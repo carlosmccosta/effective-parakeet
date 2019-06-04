@@ -12,7 +12,7 @@ class Sample:
     def __init__(self):
         rospy.init_node("zivid_sample", anonymous=True)
 
-        rospy.Subscriber("/zivid_camera/point_cloud", PointCloud2, self.on_point_cloud)
+        rospy.Subscriber("/zivid_camera/depth/points", PointCloud2, self.on_point_cloud)
 
         self.capture_service = rospy.ServiceProxy("/zivid_camera/capture", Capture)
 

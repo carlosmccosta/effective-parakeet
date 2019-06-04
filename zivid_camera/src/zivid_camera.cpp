@@ -164,9 +164,9 @@ zivid_camera::ZividCamera::ZividCamera(ros::NodeHandle& nh)
   }
 
   ROS_INFO("Advertising topics");
-  point_cloud_publisher_ = nh_.advertise<sensor_msgs::PointCloud2>("point_cloud", 1);
-  color_image_publisher_ = image_transport_.advertise("color/image_rect_color", 1);
-  depth_image_publisher_ = image_transport_.advertise("depth/image", 1);
+  point_cloud_publisher_ = nh_.advertise<sensor_msgs::PointCloud2>("depth/points", 1);
+  rgb_image_publisher_ = image_transport_.advertise("rgb/image_rect_color", 1);
+  depth_image_publisher_ = image_transport_.advertise("depth/image_rect", 1);
 
   ROS_INFO("Advertising services");
 
@@ -303,10 +303,10 @@ bool zivid_camera::ZividCamera::captureServiceHandler(zivid_camera::Capture::Req
 void zivid_camera::ZividCamera::publishFrame(Zivid::Frame&& frame)
 {
   const bool hasPointCloudSubs = point_cloud_publisher_.getNumSubscribers() > 0;
-  const bool hasColorImgSubs = color_image_publisher_.getNumSubscribers() > 0;
+  const bool hasRgbSubs = rgb_image_publisher_.getNumSubscribers() > 0;
   const bool hasDepthImgSubs = depth_image_publisher_.getNumSubscribers() > 0;
 
-  if (hasPointCloudSubs || hasColorImgSubs || hasDepthImgSubs)
+  if (hasPointCloudSubs || hasRgbSubs || hasDepthImgSubs)
   {
     auto point_cloud = frame.getPointCloud();
 
@@ -321,10 +321,10 @@ void zivid_camera::ZividCamera::publishFrame(Zivid::Frame&& frame)
       point_cloud_publisher_.publish(makePointCloud2(header, point_cloud));
     }
 
-    if (hasColorImgSubs)
+    if (hasRgbSubs)
     {
-      ROS_INFO("Publishing color image");
-      color_image_publisher_.publish(makeColorImage(header, point_cloud));
+      ROS_INFO("Publishing rgb image");
+      rgb_image_publisher_.publish(makeRgbImage(header, point_cloud));
     }
 
     if (hasDepthImgSubs)
@@ -370,8 +370,8 @@ sensor_msgs::PointCloud2 zivid_camera::ZividCamera::makePointCloud2(const std_ms
   return msg;
 }
 
-sensor_msgs::Image zivid_camera::ZividCamera::makeColorImage(const std_msgs::Header& header,
-                                                             const Zivid::PointCloud& point_cloud)
+sensor_msgs::Image zivid_camera::ZividCamera::makeRgbImage(const std_msgs::Header& header,
+                                                           const Zivid::PointCloud& point_cloud)
 {
   sensor_msgs::Image img;
   fillCommonMsgFields(img, header, point_cloud);

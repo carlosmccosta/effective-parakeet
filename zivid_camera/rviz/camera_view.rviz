@@ -63,7 +63,7 @@ Visualization Manager:
       Value: false
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /zivid_camera/depth/image
+      Image Topic: /zivid_camera/depth/image_rect
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -75,7 +75,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /zivid_camera/color/image_rect_color
+      Image Topic: /zivid_camera/rgb/image_rect_color
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -110,7 +110,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.0005000000237487257
       Style: Flat Squares
-      Topic: /zivid_camera/point_cloud
+      Topic: /zivid_camera/depth/points/
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true

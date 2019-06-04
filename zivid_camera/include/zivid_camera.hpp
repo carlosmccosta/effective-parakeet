@@ -49,7 +49,7 @@ private:
   bool captureServiceHandler(zivid_camera::Capture::Request& req, zivid_camera::Capture::Response& res);
   void publishFrame(Zivid::Frame&& frame);
   sensor_msgs::PointCloud2 makePointCloud2(const std_msgs::Header& header, const Zivid::PointCloud& point_cloud);
-  sensor_msgs::Image makeColorImage(const std_msgs::Header& header, const Zivid::PointCloud& point_cloud);
+  sensor_msgs::Image makeRgbImage(const std_msgs::Header& header, const Zivid::PointCloud& point_cloud);
   sensor_msgs::Image makeDepthImage(const std_msgs::Header& header, const Zivid::PointCloud& point_cloud);
 
   ros::NodeHandle nh_;
@@ -59,7 +59,7 @@ private:
   zivid_camera::CaptureGeneralConfig currentCaptureGeneralConfig_;
   ros::Publisher point_cloud_publisher_;
   image_transport::ImageTransport image_transport_;
-  image_transport::Publisher color_image_publisher_;
+  image_transport::Publisher rgb_image_publisher_;
   image_transport::Publisher depth_image_publisher_;
   ros::ServiceServer capture_service_;
   ros::ServiceServer camera_info_serial_number_service_;
