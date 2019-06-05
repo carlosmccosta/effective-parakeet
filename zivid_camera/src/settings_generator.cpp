@@ -48,111 +48,7 @@ struct AssertValue
   static constexpr bool value = false;
 };
 
-template <typename ZividSetting, typename ConfigType>
-struct AssertPair
-{
-  static constexpr bool value = false;
-};
-
-// Template for type conversion. The Config files in the dynamic_reconfigure package in ros
-// only support the types bool, int, double and string. The Zivid settings use different
-// base types, and must therefore be converted. Each Zivid setting base type have a
-// corresponding config type which is converted through a specialization of this class.
-template <typename SettingsType, typename ConfigType>
-class ConfigSettingsValueConversion
-{
-public:
-  static ConfigType settingsValueToConfigValue(const SettingsType& settings_value)
-  {
-    static_assert(AssertPair<SettingsType, ConfigType>::value, "A settings to config value conversion must "
-                                                               "be added for this setting type. It must be converted "
-                                                               "from either int, bool, double or std::string");
-  }
-};
-
-template <>
-class ConfigSettingsValueConversion<bool, bool>
-{
-public:
-  static bool settingsValueToConfigValue(const bool& settings_value)
-  {
-    return settings_value;
-  }
-  static constexpr const char* configValueType = "bool_t";
-};
-
-template <>
-class ConfigSettingsValueConversion<double, double>
-{
-public:
-  static double settingsValueToConfigValue(const double& settings_value)
-  {
-    return settings_value;
-  }
-  static constexpr const char* configValueType = "double_t";
-};
-
-template <>
-class ConfigSettingsValueConversion<std::chrono::microseconds, double>
-{
-public:
-  static double settingsValueToConfigValue(const std::chrono::microseconds& settings_value)
-  {
-    return std::chrono::duration_cast<std::chrono::duration<double>>(settings_value).count();
-  }
-  static constexpr const char* configValueType = "double_t";
-};
-
-template <>
-class ConfigSettingsValueConversion<size_t, int>
-{
-public:
-  static int settingsValueToConfigValue(const size_t& settings_value)
-  {
-    return (int)settings_value;
-  }
-  static constexpr const char* configValueType = "int_t";
-};
-
-// Function is used to get the text from a ranged value typically specified with a
-// default, min and max. The function requires a string conversion on the << operator.
-template <typename ValueType>
-std::string getRangeValue(ValueType default_value, ValueType min_value, ValueType max_value)
-{
-  std::stringstream default_value_ss;
-  std::stringstream min_value_ss;
-  std::stringstream max_value_ss;
-
-  default_value_ss << default_value;
-  min_value_ss << min_value;
-  max_value_ss << max_value;
-
-  return default_value_ss.str() + ", " + min_value_ss.str() + ", " + max_value_ss.str();
-}
-
-template <typename ZividSetting, typename ValueType>
-std::string getRangeValueText(const ZividSetting& zividSetting)
-{
-  ValueType default_value =
-      ConfigSettingsValueConversion<typename ZividSetting::ValueType, ValueType>::settingsValueToConfigValue(
-          zividSetting.value());
-  ValueType min_value =
-      ConfigSettingsValueConversion<typename ZividSetting::ValueType, ValueType>::settingsValueToConfigValue(
-          zividSetting.range().min());
-  ValueType max_value =
-      ConfigSettingsValueConversion<typename ZividSetting::ValueType, ValueType>::settingsValueToConfigValue(
-          zividSetting.range().max());
-
-  return getRangeValue<ValueType>(default_value, min_value, max_value);
-}
-
-template <typename ZividSetting, typename ValueType>
-std::string getTypeNameText(void)
-{
-  return ConfigSettingsValueConversion<typename ZividSetting::ValueType, ValueType>::configValueType;
-}
-
-std::string convertSettingsPathToZividTypeName(const std::string& path)
+std::string convertSettingsPathToZividClassName(const std::string& path)
 {
   const auto typeName = boost::replace_all_copy<std::string>(path, "/", "::");
   return "Zivid::Settings::" + typeName;
@@ -173,47 +69,89 @@ public:
   {
   }
 
+  template <class ValueType>
+  auto convertValueToRosValue(ValueType value)
+  {
+    // Convert from our own setting value types to the types that ROS params supports.
+    if constexpr (std::is_same_v<ValueType, bool> || std::is_same_v<ValueType, double>)
+    {
+      return value;
+    }
+    else if constexpr (std::is_same_v<ValueType, std::size_t>)
+    {
+      return static_cast<int>(value);
+    }
+    else if constexpr (std::is_same_v<ValueType, std::chrono::microseconds>)
+    {
+      return std::chrono::duration_cast<std::chrono::duration<double>>(value).count();
+    }
+    else
+    {
+      static_assert(AssertValue<ValueType>::value, "Could not convert ValueType to ROS type.");
+    }
+  }
+
+  template <class RosType>
+  std::string rosTypeName()
+  {
+    if constexpr (std::is_same_v<RosType, bool>)
+    {
+      return "bool_t";
+    }
+    else if constexpr (std::is_same_v<RosType, double>)
+    {
+      return "double_t";
+    }
+    else if constexpr (std::is_same_v<RosType, int>)
+    {
+      return "int_t";
+    }
+    else
+    {
+      static_assert(AssertValue<RosType>::value, "Could not convert RosType to a ROS typename string.");
+    }
+  }
+
+  template <class RosType>
+  std::string rosTypeToString(RosType v)
+  {
+    if constexpr (std::is_same_v<RosType, bool>)
+    {
+      return v ? "True" : "False";
+    }
+    else if constexpr (std::is_same_v<RosType, double> || std::is_same_v<RosType, int>)
+    {
+      return std::to_string(v);
+    }
+    else
+    {
+      static_assert(AssertValue<RosType>::value, "Could not convert RosType to a string value.");
+    }
+  }
+
+  template <class ValueType>
+  std::string valueTypeToRosTypeString(ValueType v)
+  {
+    return rosTypeToString(convertValueToRosValue(v));
+  }
+
   template <class ZividSetting>
   void apply(const ZividSetting& s)
   {
     const auto setting_name = convertSettingsPathToConfigPath(s.path);
     const auto level = "0";
-    std::string description = "";
+    const auto description = "";
+    const auto type_name = rosTypeName<decltype(convertValueToRosValue(s.value()))>();
+    const auto default_value = valueTypeToRosTypeString(s.value());
 
-    std::string type_name;
-    std::string default_text;
+    ss_ << "gen.add(\"" << setting_name << "\", " << type_name << ", " << level << ", "
+        << "\"" << description << "\", " << default_value;
 
-    if constexpr (std::is_same_v<typename ZividSetting::ValueType, bool>)
+    if constexpr (HasRange<NormalizedType<ZividSetting>>::value)
     {
-      default_text =
-          ConfigSettingsValueConversion<bool, bool>::settingsValueToConfigValue(s.value()) ? "True" : "False";
-      type_name = getTypeNameText<ZividSetting, bool>();
+      ss_ << ", " << valueTypeToRosTypeString(s.range().min()) << ", " << valueTypeToRosTypeString(s.range().max());
     }
-    else if constexpr (std::is_same_v<typename ZividSetting::ValueType, double>)
-    {
-      default_text = getRangeValueText<ZividSetting, double>(s);
-      type_name = getTypeNameText<ZividSetting, double>();
-    }
-    else if constexpr (std::is_same_v<typename ZividSetting::ValueType, size_t>)
-    {
-      default_text = getRangeValueText<ZividSetting, int>(s);
-      type_name = getTypeNameText<ZividSetting, int>();
-    }
-    else if constexpr (std::is_same_v<typename ZividSetting::ValueType, std::chrono::microseconds>)
-    {
-      default_text = getRangeValueText<ZividSetting, double>(s);
-      type_name = getTypeNameText<ZividSetting, double>();
-    }
-    else
-    {
-      static_assert(AssertValue<typename ZividSetting::ValueType>::value, "A default text and type name is required "
-                                                                          "for "
-                                                                          "type "
-                                                                          "ZividSetting::ValueType");
-    }
-
-    ss_ << "gen.add(\"" + setting_name + "\", " + type_name + ", " + level + ", " + "\"" + description + "\", " +
-               default_text + ")\n";
+    ss_ << ")\n";
   }
 
   void insertEnabled()
@@ -262,7 +200,7 @@ public:
     using VT = typename T::ValueType;
 
     const auto cfgId = "cfg." + convertSettingsPathToConfigPath(s.path);
-    const auto zividClassName = convertSettingsPathToZividTypeName(s.path);
+    const auto zividClassName = convertSettingsPathToZividClassName(s.path);
     ss_ << "  s.set(" + zividClassName + "{ ";
 
     if constexpr (std::is_same_v<VT, std::size_t>)
@@ -317,7 +255,7 @@ public:
     using T = NormalizedType<decltype(s)>;
     using VT = typename T::ValueType;
     const auto cfgId = "cfg." + convertSettingsPathToConfigPath(s.path);
-    const auto zividClassName = convertSettingsPathToZividTypeName(s.path);
+    const auto zividClassName = convertSettingsPathToZividClassName(s.path);
 
     const auto valueStr = [&]() {
       if (type_ == Type::Min || type_ == Type::Max)
@@ -344,7 +282,7 @@ public:
     }
   }
 
-  std::string typeUc()
+  std::string typeUcFirst()
   {
     switch (type_)
     {
@@ -360,7 +298,7 @@ public:
 
   std::string type()
   {
-    auto _type = typeUc();
+    auto _type = typeUcFirst();
     _type[0] = std::tolower(_type[0]);
     return _type;
   }
@@ -370,9 +308,9 @@ public:
     const auto fullClassName = "zivid_camera::" + className_ + "Config";
     std::stringstream res;
     res << fullClassName << " get" << className_
-        << "Config" + typeUc() + "FromZividSettings(const Zivid::Settings& s)\n";
+        << "Config" + typeUcFirst() + "FromZividSettings(const Zivid::Settings& s)\n";
     res << "{\n";
-    res << "  auto cfg = " + fullClassName + "::__get" + typeUc() + "__();\n";
+    res << "  auto cfg = " + fullClassName + "::__get" + typeUcFirst() + "__();\n";
     res << ss_.str();
     res << "  return cfg;\n";
     res << "}\n";

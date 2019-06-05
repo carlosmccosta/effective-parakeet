@@ -15,6 +15,7 @@ class ZividNodeTest : public testing::Test
 {
 protected:
   ros::NodeHandle nh_;
+
 public:
   const ros::Duration defaultWaitDuration{ 5 };
 
