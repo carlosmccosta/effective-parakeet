@@ -16,6 +16,7 @@ apt-yes install \
     clang-format \
     shellcheck \
     python3-pip \
+    python-catkin-tools \
     || exit $?
 
 pip3 install -r $SCRIPT_DIR/requirements.txt || exit $?

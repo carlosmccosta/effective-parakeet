@@ -9,12 +9,4 @@ env:
 before_install:
   - docker pull $OS
 
-script:
-  - docker run
-      --volume $PWD:/host
-      --workdir /host/continuous-integration
-      $OS
-      bash -c "./setup.sh &&
-               ./lint.sh &&
-               ./test.sh"
-
+script: ./continuous-integration/ci_test.sh

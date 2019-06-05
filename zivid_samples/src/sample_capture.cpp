@@ -42,7 +42,7 @@ int main(int argc, char** argv)
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
-  ros::Subscriber sub = n.subscribe("/zivid_camera/depth/points", 10, onPointCloud);
+  ros::Subscriber sub = n.subscribe("/zivid_camera/depth/points", 1, onPointCloud);
 
   ROS_INFO("Enable the reflection filter");
   dynamic_reconfigure::Client<zivid_camera::CaptureGeneralConfig> captureGeneralClient("/zivid_camera/"

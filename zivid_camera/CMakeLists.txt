@@ -37,7 +37,7 @@ if(OpenMP_FOUND)
 endif()
 
 add_executable(${PROJECT_NAME}_settings_generator src/settings_generator.cpp)
-target_link_libraries(${PROJECT_NAME}_settings_generator Zivid::Core)
+target_link_libraries(${PROJECT_NAME}_settings_generator PRIVATE Zivid::Core)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -150,9 +150,12 @@ add_library(${PROJECT_NAME}
 )
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic -Werror)
 target_compile_definitions(${PROJECT_NAME} PRIVATE "ZIVID_ROS_DRIVER_VERSION=\"${${PROJECT_NAME}_VERSION}\"")
-target_link_libraries(${PROJECT_NAME}
-    Zivid::Core
+target_link_libraries(${PROJECT_NAME} PUBLIC
     ${catkin_LIBRARIES}
+)
+target_link_libraries(${PROJECT_NAME}
+    PRIVATE
+    Zivid::Core
 )
 add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_gencfg ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
 
@@ -226,13 +229,6 @@ add_dependencies(${PROJECT_NAME}_nodelet ${${PROJECT_NAME}_EXPORTED_TARGETS} ${c
 ## Add gtest based cpp test target and link libraries
 if(CATKIN_ENABLE_TESTING)
     find_package(rostest REQUIRED)
-
     add_rostest_gtest(${PROJECT_NAME}_test test/test_zivid_camera.test test/test_zivid_camera.cpp)
-    target_link_libraries(${PROJECT_NAME}_test ${PROJECT_NAME} ${catkin_LIBRARIES})
+    target_link_libraries(${PROJECT_NAME}_test ${PROJECT_NAME} Zivid::Core ${catkin_LIBRARIES})
 endif()
-#if(TARGET ${PROJECT_NAME}-test)
-#    target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-#endif()
-
-## Add folders to be run by python nosetests
-# catkin_add_nosetests(test)
