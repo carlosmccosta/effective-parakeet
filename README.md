@@ -7,7 +7,7 @@ THIS DRIVER IS WORK IN PROGRESS. IT WILL CHANGE BEFORE FINAL RELEASE.
 **Only Ubuntu 18.04 with ROS Melodic has been tested.**
 
 This is the official ROS package for Zivid 3D cameras. This enables usage of Zivid cameras as
-a node/nodelet in ROS. Read more about Zivid at (our website)[https://www.zivid.com/]. Please report
+a node/nodelet in ROS. Read more about Zivid at [our website](https://www.zivid.com/). Please report
 any issues or feature requests in the issue tracker.
 
 ## Installation
@@ -17,7 +17,7 @@ This package supports Ubuntu 18.04 and ROS version Melodic Morenia.
 ### Prerequisites
 
 #### ROS
-Follow guide at http://wiki.ros.org/ROS/Installation to install ROS Melodic.
+Follow the [ROS installation wiki](http://wiki.ros.org/ROS/Installation) to install ROS Melodic.
 
 Also install catkin and git.
 
@@ -165,20 +165,21 @@ For sample code in C++ and Python, see the Samples section.
 ## Configuration
 
 The capture settings can be configured using [dynamic_reconfigure](https://wiki.ros.org/dynamic_reconfigure).
-
-Run [rqt_reconfigure](https://wiki.ros.org/rqt_reconfigure) to view or change the settings using a GUI.
+Use [rqt_reconfigure](https://wiki.ros.org/rqt_reconfigure) to view or change the settings using a GUI.
 
 ```
 rosrun rqt_reconfigure rqt_reconfigure
 ```
 
 The capture settings available in the `zivid_camera` node matches the settings in the Zivid API.
-To become more familiar with the available settings in Zivid, run Zivid Studio or visit
+To become more familiar with the available settings in Zivid, run Zivid Studio or see
 the [API reference](http://www.zivid.com/software/api-documentation) of the `Settings` class.
 Note that the available settings will depend on which version of Zivid Core you are using.
 
-The `zivid_camera` node supports both single-capture and HDR-capture. For more information about
-HDR capture, visit our [knowledge base](https://help.zivid.com) and search for HDR.
+The `zivid_camera` node supports both single-capture and HDR-capture. HDR-capture works by taking
+several captures with different settings (for example different exposure time) and combining the
+captures into one high-quality point cloud. For more information about HDR capture, visit our
+[knowledge base](https://help.zivid.com) and search for HDR.
 
 The available capture settings are split into subtrees:
 
