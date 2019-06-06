@@ -12,7 +12,6 @@ class ZividNodelet : public nodelet::Nodelet
 private:
   virtual void onInit()
   {
-    ROS_INFO_STREAM("ZividNodelet::" << __func__);
     try
     {
       c = std::make_unique<zivid_camera::ZividCamera>(getNodeHandle());

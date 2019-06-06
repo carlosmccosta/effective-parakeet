@@ -1,23 +1,18 @@
+#include <nodelet/loader.h>
 #include <ros/ros.h>
-
-#include "zivid_camera.hpp"
 
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "zivid_camera");
 
-  ros::NodeHandle nh;
+  ROS_INFO("Creating nodelet::Loader");
+  nodelet::Loader nodelet;
+  nodelet::M_string remap(ros::names::getRemappings());
+  nodelet::V_string nargv;
 
-  try
-  {
-    zivid_camera::ZividCamera wrapper(nh);
-    ros::spin();
-  }
-  catch (const std::exception& e)
-  {
-    ROS_ERROR("Error during initialization: %s", e.what());
-    return EXIT_FAILURE;
-  }
-
+  const auto nodeletName = "zivid_camera/nodelet";
+  ROS_INFO("Loading nodelet %s", nodeletName);
+  nodelet.load(ros::this_node::getName(), nodeletName, remap, nargv);
+  ros::spin();
   return 0;
 }

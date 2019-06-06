@@ -295,7 +295,7 @@ rosrun zivid_samples scripts/sample_capture.py
 zivid_camera can also be launched as a [nodelet](http://wiki.ros.org/nodelet), for example:
 
 ```
-ROS_NAMESPACE=zivid_camera rosrun nodelet nodelet standalone zivid_camera_nodelet
+ROS_NAMESPACE=zivid_camera rosrun nodelet nodelet standalone zivid_camera/nodelet
 ```
 
 ## Using multiple cameras
