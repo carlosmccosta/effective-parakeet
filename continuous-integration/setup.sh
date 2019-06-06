@@ -12,14 +12,30 @@ apt-yes update || exit $?
 apt-yes dist-upgrade || exit $?
 
 apt-yes install \
+    alien \
     wget \
     clang-format \
     shellcheck \
     python3-pip \
     python-catkin-tools \
+    unzip \
     || exit $?
 
 pip3 install -r $SCRIPT_DIR/requirements.txt || exit $?
+
+function install_opencl_cpu_runtime {
+    TMP_DIR=$(mktemp --tmpdir --directory zivid-setup-opencl-cpu-XXXX) || exit $?
+    pushd $TMP_DIR || exit $?
+    wget -q https://www.dropbox.com/s/0cvg8fypylgal2m/opencl_runtime_16.1.1_x64_ubuntu_6.4.0.25.tgz || exit $?
+    tar -xf opencl_runtime_16.1.1_x64_ubuntu_6.4.0.25.tgz || exit $?
+    alien -i opencl_runtime_*/rpm/*.rpm || exit $?
+    mkdir -p /etc/OpenCL/vendors || exit $?
+    ls /opt/intel/opencl*/lib64/libintelocl.so > /etc/OpenCL/vendors/intel.icd || exit $?
+    popd || exit $?
+    rm -r $TMP_DIR || exit $?
+}
+
+install_opencl_cpu_runtime || exit $?
 
 function install_www_deb {
     TMP_DIR=$(mktemp --tmpdir --directory install_www_deb-XXXX) || exit $?

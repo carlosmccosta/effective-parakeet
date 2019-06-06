@@ -330,3 +330,32 @@ For example, if ROS_NAMESPACE=zivid_camera,
 ```
 rosconsole set /zivid_camera/zivid_camera ros.zivid_camera debug
 ```
+
+## Run unit & module tests
+
+This project comes with a set of unit and module tests to verify the provided functionality.
+The tests can be run via docker and locally.
+
+### Test via docker
+```
+cd ~/catkin_ws/src/zivid_ros/
+OS=ros:melodic-ros-base-bionic ./continuous-integration/ci_test.sh
+```
+
+### Test locally
+
+First download and install the file camera used for testing.
+```
+wget -q https://www.zivid.com/software/ZividSampleData.zip
+unzip ./ZividSampleData.zip
+rm ./ZividSampleData.zip
+sudo mkdir -p /usr/share/Zivid/data/
+sudo cp ./MiscObjects.zdf /usr/share/Zivid/data/
+rm ./MiscObjects.zdf
+```
+
+Then run the tests
+```
+cd ~/catkin_ws && source devel/setup.bash
+catkin run_tests && catkin_test_results
+```
