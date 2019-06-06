@@ -9,13 +9,6 @@ option(USE_COMPILER_WARNING_OPTIONS off)
 if(USE_COMPILER_WARNING_OPTIONS)
     include(CompilerWarningOptions NO_POLICY_SCOPE)
 endif(USE_COMPILER_WARNING_OPTIONS)
-#include_directories(
-#    SYSTEM
-#  /usr/include
-#)
-## Find catkin macros and libraries
-## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
-## is used, also find other catkin packages
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -36,51 +29,21 @@ if(OpenMP_FOUND)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
-add_executable(${PROJECT_NAME}_settings_generator src/settings_generator.cpp)
-target_link_libraries(${PROJECT_NAME}_settings_generator PRIVATE Zivid::Core)
+set(LIBRARY_NAME ${PROJECT_NAME})
 
-## Uncomment this if the package has a setup.py. This macro ensures
-## modules and global scripts declared therein get installed
-## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
-# catkin_python_setup()
+set(SETTINGS_GENERATOR_TARGET_NAME ${PROJECT_NAME}_settings_generator)
+add_executable(${SETTINGS_GENERATOR_TARGET_NAME} src/settings_generator.cpp)
+target_link_libraries(${SETTINGS_GENERATOR_TARGET_NAME} PRIVATE Zivid::Core)
 
 ################################################
 ## Declare ROS messages, services and actions ##
 ################################################
-
-## To declare and build messages, services or actions from within this
-## package, follow these steps:
-## * Let MSG_DEP_SET be the set of packages whose message types you use in
-##   your messages/services/actions (e.g. std_msgs, actionlib_msgs, ...).
-## * In the file package.xml:
-##   * add a build_depend tag for "message_generation"
-##   * add a build_depend and a exec_depend tag for each package in MSG_DEP_SET
-##   * If MSG_DEP_SET isn't empty the following dependency has been pulled in
-##     but can be declared for certainty nonetheless:
-##     * add a exec_depend tag for "message_runtime"
-## * In this file (CMakeLists.txt):
-##   * add "message_generation" and every package in MSG_DEP_SET to
-##     find_package(catkin REQUIRED COMPONENTS ...)
-##   * add "message_runtime" and every package in MSG_DEP_SET to
-##     catkin_package(CATKIN_DEPENDS ...)
-##   * uncomment the add_*_files sections below as needed
-##     and list every .msg/.srv/.action file to be processed
-##   * uncomment the generate_messages entry below
-##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
-
-## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
 
 generate_dynamic_reconfigure_options(
   ${CMAKE_CURRENT_BINARY_DIR}/CaptureGeneral.cfg
   ${CMAKE_CURRENT_BINARY_DIR}/CaptureFrame.cfg
 )
 
-## Generate services in the 'srv' folder
 add_service_files(
   DIRECTORY
   srv
@@ -90,137 +53,83 @@ add_service_files(
   CameraInfoSerialNumber.srv
 )
 
+set(GENERATOR_TARGET_NAME ${PROJECT_NAME}_generator)
 add_custom_target(
-    ${PROJECT_NAME}_generator
-    COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/state_srv_files
-    COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/generated_headers
-    COMMAND ${PROJECT_NAME}_settings_generator
-    COMMAND chmod a+x ${CMAKE_CURRENT_BINARY_DIR}/CaptureGeneral.cfg
-    COMMAND chmod a+x ${CMAKE_CURRENT_BINARY_DIR}/CaptureFrame.cfg
-    BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/CaptureGeneral.cfg
-               ${CMAKE_CURRENT_BINARY_DIR}/CaptureFrame.cfg
-    COMMENT "Running generator"
+  ${GENERATOR_TARGET_NAME}
+  COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/state_srv_files
+  COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/generated_headers
+  COMMAND ${SETTINGS_GENERATOR_TARGET_NAME}
+  COMMAND chmod a+x ${CMAKE_CURRENT_BINARY_DIR}/CaptureFrame.cfg
+  COMMAND chmod a+x ${CMAKE_CURRENT_BINARY_DIR}/CaptureGeneral.cfg
+  BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/CaptureFrame.cfg
+             ${CMAKE_CURRENT_BINARY_DIR}/CaptureGeneral.cfg
+             ${CMAKE_CURRENT_BINARY_DIR}/generated_headers/CaptureFrameConfigUtils.h
+             ${CMAKE_CURRENT_BINARY_DIR}/generated_headers/CaptureGeneralConfigUtils.h
+  COMMENT "Running generator"
 )
 
-add_dependencies(${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generator)
-add_dependencies(${PROJECT_NAME}_gencfg ${PROJECT_NAME}_generator)
+add_dependencies(${catkin_EXPORTED_TARGETS} ${GENERATOR_TARGET_NAME})
+add_dependencies(${PROJECT_NAME}_gencfg ${GENERATOR_TARGET_NAME})
 
-## Generate added messages and services with any dependencies listed here
 generate_messages(
-    DEPENDENCIES
-    sensor_msgs
+  DEPENDENCIES
+  sensor_msgs
 )
 
-###################################
-## catkin specific configuration ##
-###################################
-## The catkin_package macro generates cmake config files for your package
-## Declare things to be passed to dependent projects
-## INCLUDE_DIRS: uncomment this if your package contains header files
-## LIBRARIES: libraries you create in this project that dependent projects also need
-## CATKIN_DEPENDS: catkin_packages dependent projects also need
-## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include ${catkin_INCLUDE_DIRS}
-  LIBRARIES zivid_camera
+  LIBRARIES ${LIBRARY_NAME}
   CATKIN_DEPENDS message_runtime sensor_msgs std_msgs nodelet
-#  DEPENDS system_lib
 )
 
 ###########
 ## Build ##
 ###########
 
-## Specify additional locations of header files
-## Your package locations should be listed before other locations
 include_directories(
   include
   ${CMAKE_CURRENT_BINARY_DIR}/generated_headers/
   ${catkin_INCLUDE_DIRS}
 )
 
-#include_directories(
-#    SYSTEM
-#  ${catkin_INCLUDE_DIRS}
-#)
+add_library(${LIBRARY_NAME} src/zivid_camera.cpp)
+target_compile_options(${LIBRARY_NAME} PRIVATE -Wall -Wextra -pedantic -Werror)
+target_compile_definitions(${LIBRARY_NAME} PRIVATE "ZIVID_ROS_DRIVER_VERSION=\"${${PROJECT_NAME}_VERSION}\"")
+target_link_libraries(${LIBRARY_NAME} PUBLIC ${catkin_LIBRARIES})
+target_link_libraries(${LIBRARY_NAME} PRIVATE Zivid::Core)
+add_dependencies(${LIBRARY_NAME} ${PROJECT_NAME}_gencfg ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
 
-## Declare a C++ library
-add_library(${PROJECT_NAME}
-    src/zivid_camera.cpp
-)
-target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic -Werror)
-target_compile_definitions(${PROJECT_NAME} PRIVATE "ZIVID_ROS_DRIVER_VERSION=\"${${PROJECT_NAME}_VERSION}\"")
-target_link_libraries(${PROJECT_NAME} PUBLIC
-    ${catkin_LIBRARIES}
-)
-target_link_libraries(${PROJECT_NAME}
-    PRIVATE
-    Zivid::Core
-)
-add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_gencfg ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
+set(NODE_NAME ${PROJECT_NAME}_node)
+add_executable(${NODE_NAME} src/node.cpp)
+target_compile_options(${NODE_NAME} PRIVATE -Wall -Wextra -pedantic -Werror)
+target_link_libraries(${NODE_NAME} ${LIBRARY_NAME} ${catkin_LIBRARIES})
+add_dependencies(${NODE_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} ${LIBRARY_NAME} )
 
-## Add cmake target dependencies of the library
-## as an example, code may need to be generated before libraries
-## either from message generation or dynamic reconfigure
-# add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-# add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
-
-add_executable(${PROJECT_NAME}_node src/node.cpp)
-target_compile_options(${PROJECT_NAME}_node PRIVATE -Wall -Wextra -pedantic -Werror)
-target_link_libraries(${PROJECT_NAME}_node
-    ${PROJECT_NAME}
-    ${catkin_LIBRARIES}
-)
-add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME} )
-
-add_library(${PROJECT_NAME}_nodelet src/nodelet.cpp)
-target_link_libraries(${PROJECT_NAME}_nodelet ${PROJECT_NAME} ${catkin_LIBRARIES})
-target_compile_options(${PROJECT_NAME}_nodelet PRIVATE -Wall -Wextra -pedantic -Werror)
-install(FILES nodelets.xml
-    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-)
-add_dependencies(${PROJECT_NAME}_nodelet ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME} )
-
-## Rename C++ executable without prefix
-## The above recommended prefix causes long target names, the following renames the
-## target back to the shorter version for ease of user use
-## e.g. "rosrun someones_pkg node" instead of "rosrun someones_pkg someones_pkg_node"
-# set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
+set(NODELET_NAME ${PROJECT_NAME}_nodelet)
+add_library(${NODELET_NAME} src/nodelet.cpp)
+target_link_libraries(${NODELET_NAME} ${LIBRARY_NAME} ${catkin_LIBRARIES})
+target_compile_options(${NODELET_NAME} PRIVATE -Wall -Wextra -pedantic -Werror)
+add_dependencies(${NODELET_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} ${LIBRARY_NAME} )
 
 #############
 ## Install ##
 #############
 
-# all install targets should use catkin DESTINATION variables
-# See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html
+install(
+  TARGETS ${LIBRARY_NAME} ${NODE_NAME} ${NODELET_NAME}
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
-## Mark executable scripts (Python etc.) for installation
-## in contrast to setup.py, you can choose the destination
-# install(PROGRAMS
-#   scripts/my_python_script
-#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+install(
+  FILES nodelets.xml
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
-## Mark executables and/or libraries for installation
-# install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node ${PROJECT_NAME}_nodelet
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
-
-## Mark cpp header files for installation
-# install(DIRECTORY include/${PROJECT_NAME}/
-#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-#   FILES_MATCHING PATTERN "*.h"
-#   PATTERN ".svn" EXCLUDE
-# )
-
-## Mark other files for installation (e.g. launch and bag files, etc.)
-# install(FILES
-#   # myfile1
-#   # myfile2
-#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-# )
+install(
+  DIRECTORY launch/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+)
 
 #############
 ## Testing ##
@@ -228,7 +137,7 @@ add_dependencies(${PROJECT_NAME}_nodelet ${${PROJECT_NAME}_EXPORTED_TARGETS} ${c
 
 ## Add gtest based cpp test target and link libraries
 if(CATKIN_ENABLE_TESTING)
-    find_package(rostest REQUIRED)
-    add_rostest_gtest(${PROJECT_NAME}_test test/test_zivid_camera.test test/test_zivid_camera.cpp)
-    target_link_libraries(${PROJECT_NAME}_test ${PROJECT_NAME} Zivid::Core ${catkin_LIBRARIES})
+  find_package(rostest REQUIRED)
+  add_rostest_gtest(${PROJECT_NAME}_test test/test_zivid_camera.test test/test_zivid_camera.cpp)
+  target_link_libraries(${PROJECT_NAME}_test ${LIBRARY_NAME} Zivid::Core ${catkin_LIBRARIES})
 endif()
