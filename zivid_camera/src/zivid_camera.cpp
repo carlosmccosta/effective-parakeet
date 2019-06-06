@@ -167,8 +167,8 @@ zivid_camera::ZividCamera::ZividCamera(ros::NodeHandle& nh)
 
   ROS_INFO("Advertising topics");
   point_cloud_publisher_ = nh_.advertise<sensor_msgs::PointCloud2>("depth/points", 1);
-  rgb_image_publisher_ = image_transport_.advertise("rgb/image_rect_color", 1);
-  depth_image_publisher_ = image_transport_.advertise("depth/image_rect", 1);
+  rgb_image_publisher_ = image_transport_.advertise("rgb/image_color", 1);
+  depth_image_publisher_ = image_transport_.advertise("depth/image", 1);
 
   ROS_INFO("Advertising services");
 

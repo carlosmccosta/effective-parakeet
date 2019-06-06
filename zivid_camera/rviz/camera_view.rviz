@@ -63,7 +63,7 @@ Visualization Manager:
       Value: false
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /zivid_camera/depth/image_rect
+      Image Topic: /zivid_camera/depth/image
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -75,7 +75,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /zivid_camera/rgb/image_rect_color
+      Image Topic: /zivid_camera/rgb/image_color
       Max Value: 1
       Median window: 5
       Min Value: 0

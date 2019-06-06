@@ -56,13 +56,13 @@ TEST_F(ZividNodeTest, testCapturePublishesTopics)
   boost::function<void(const boost::shared_ptr<sensor_msgs::Image const>&)> onRgbImage = [&](const auto&) {
     numRgbImagesReceived++;
   };
-  auto rgbImageSub = nh_.subscribe("/zivid_camera/rgb/image_rect_color", 1, onRgbImage);
+  auto rgbImageSub = nh_.subscribe("/zivid_camera/rgb/image_color", 1, onRgbImage);
 
   std::size_t numDepthImagesReceived = 0;
   boost::function<void(const boost::shared_ptr<sensor_msgs::Image const>&)> onDepthImage = [&](const auto&) {
     numDepthImagesReceived++;
   };
-  auto depthImageSub = nh_.subscribe("/zivid_camera/depth/image_rect", 1, onDepthImage);
+  auto depthImageSub = nh_.subscribe("/zivid_camera/depth/image", 1, onDepthImage);
 
   auto verifyNumTopicsReceived = [&](std::size_t numTopics) {
     ASSERT_EQ(numPointsReceived, numTopics);

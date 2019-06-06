@@ -155,11 +155,11 @@ For sample code in C++ and Python, see the Samples section.
 > and r, g, b (colors). The output is in the camera's optical frame, where x is right, y is
 > down and z is forward.
 
-`depth/image_rect (sensor_msgs/Image)`
+`depth/image (sensor_msgs/Image)`
 > Depth image. Each pixel contains the z-value (along the camera Z axis) in meters.
 > The image is encoded as 32-bit float. Pixels where z-value is missing are NaN.
 
-`rgb/image_rect_color (sensor_msgs/Image)`
+`rgb/image_color (sensor_msgs/Image)`
 > RGB image. The image is encoded as "rgb8".
 
 ## Configuration
