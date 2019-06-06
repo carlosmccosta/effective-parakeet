@@ -7,10 +7,12 @@
 
 #include <sensor_msgs/point_cloud2_iterator.h>
 #include <sensor_msgs/image_encodings.h>
+#include <sensor_msgs/distortion_models.h>
 #include <dynamic_reconfigure/config_tools.h>
 
 #include <Zivid/HDR.h>
 #include <Zivid/Firmware.h>
+#include <Zivid/Version.h>
 
 #include <boost/algorithm/string.hpp>
 
@@ -167,8 +169,8 @@ zivid_camera::ZividCamera::ZividCamera(ros::NodeHandle& nh)
 
   ROS_INFO("Advertising topics");
   point_cloud_publisher_ = nh_.advertise<sensor_msgs::PointCloud2>("depth/points", 1);
-  rgb_image_publisher_ = image_transport_.advertise("rgb/image_color", 1);
-  depth_image_publisher_ = image_transport_.advertise("depth/image", 1);
+  color_image_publisher_ = image_transport_.advertiseCamera("color/image_color", 1);
+  depth_image_publisher_ = image_transport_.advertiseCamera("depth/image_raw", 1);
 
   ROS_INFO("Advertising services");
 
@@ -305,10 +307,10 @@ bool zivid_camera::ZividCamera::captureServiceHandler(zivid_camera::Capture::Req
 void zivid_camera::ZividCamera::publishFrame(Zivid::Frame&& frame)
 {
   const bool hasPointCloudSubs = point_cloud_publisher_.getNumSubscribers() > 0;
-  const bool hasRgbSubs = rgb_image_publisher_.getNumSubscribers() > 0;
+  const bool hasColorImgSubs = color_image_publisher_.getNumSubscribers() > 0;
   const bool hasDepthImgSubs = depth_image_publisher_.getNumSubscribers() > 0;
 
-  if (hasPointCloudSubs || hasRgbSubs || hasDepthImgSubs)
+  if (hasPointCloudSubs || hasColorImgSubs || hasDepthImgSubs)
   {
     auto point_cloud = frame.getPointCloud();
 
@@ -323,16 +325,21 @@ void zivid_camera::ZividCamera::publishFrame(Zivid::Frame&& frame)
       point_cloud_publisher_.publish(makePointCloud2(header, point_cloud));
     }
 
-    if (hasRgbSubs)
+    if (hasColorImgSubs || hasDepthImgSubs)
     {
-      ROS_INFO("Publishing rgb image");
-      rgb_image_publisher_.publish(makeRgbImage(header, point_cloud));
-    }
+      auto camera_info = makeCameraInfo(header, point_cloud, camera_.intrinsics());
 
-    if (hasDepthImgSubs)
-    {
-      ROS_INFO("Publishing depth image");
-      depth_image_publisher_.publish(makeDepthImage(header, point_cloud));
+      if (hasColorImgSubs)
+      {
+        ROS_INFO("Publishing color image");
+        color_image_publisher_.publish(makeColorImage(header, point_cloud), camera_info);
+      }
+
+      if (hasDepthImgSubs)
+      {
+        ROS_INFO("Publishing depth image");
+        depth_image_publisher_.publish(makeDepthImage(header, point_cloud), camera_info);
+      }
     }
   }
 }
@@ -372,8 +379,8 @@ sensor_msgs::PointCloud2 zivid_camera::ZividCamera::makePointCloud2(const std_ms
   return msg;
 }
 
-sensor_msgs::Image zivid_camera::ZividCamera::makeRgbImage(const std_msgs::Header& header,
-                                                           const Zivid::PointCloud& point_cloud)
+sensor_msgs::Image zivid_camera::ZividCamera::makeColorImage(const std_msgs::Header& header,
+                                                             const Zivid::PointCloud& point_cloud)
 {
   sensor_msgs::Image img;
   fillCommonMsgFields(img, header, point_cloud);
@@ -407,4 +414,52 @@ sensor_msgs::Image zivid_camera::ZividCamera::makeDepthImage(const std_msgs::Hea
     *image_data = point_cloud(i).z * 0.001;
   }
   return img;
+}
+
+sensor_msgs::CameraInfo zivid_camera::ZividCamera::makeCameraInfo(const std_msgs::Header& header,
+                                                                  const Zivid::PointCloud& point_cloud,
+                                                                  const Zivid::CameraIntrinsics& intrinsics)
+{
+  sensor_msgs::CameraInfo camera_info;
+  camera_info.header = header;
+  camera_info.width = point_cloud.width();
+  camera_info.height = point_cloud.height();
+  camera_info.distortion_model = sensor_msgs::distortion_models::PLUMB_BOB;
+
+  // k1, k2, t1, t2, k3
+  const auto distortion = intrinsics.distortion();
+  camera_info.D.resize(5);
+  camera_info.D[0] = distortion.k1().value();
+  camera_info.D[1] = distortion.k2().value();
+  camera_info.D[2] = distortion.p1().value();
+  camera_info.D[3] = distortion.p2().value();
+  camera_info.D[4] = distortion.k3().value();
+
+  // Intrinsic camera matrix for the raw (distorted) images.
+  //     [fx  0 cx]
+  // K = [ 0 fy cy]
+  //     [ 0  0  1]
+  const auto cameraMatrix = intrinsics.cameraMatrix();
+  camera_info.K[0] = cameraMatrix.fx().value();
+  camera_info.K[2] = cameraMatrix.cx().value();
+  camera_info.K[4] = cameraMatrix.fy().value();
+  camera_info.K[5] = cameraMatrix.cy().value();
+  camera_info.K[8] = 1;
+
+  // R (identity)
+  camera_info.R[0] = 1;
+  camera_info.R[4] = 1;
+  camera_info.R[8] = 1;
+
+  // Projection/camera matrix
+  //     [fx'  0  cx' Tx]
+  // P = [ 0  fy' cy' Ty]
+  //     [ 0   0   1   0]
+  camera_info.P[0] = cameraMatrix.fx().value();
+  camera_info.P[2] = cameraMatrix.cx().value();
+  camera_info.P[5] = cameraMatrix.fy().value();
+  camera_info.P[6] = cameraMatrix.cy().value();
+  camera_info.P[10] = 1;
+
+  return camera_info;
 }

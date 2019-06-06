@@ -135,32 +135,37 @@ For sample code in C++ and Python, see the Samples section.
 
 ## Services
 
-`capture (zivid_camera/Capture)`
+`capture` ([zivid_camera/Capture](./zivid_camera/srv/Capture.srv))
 > Invoke this service to trigger a capture. The capture settings are configured using
 > [dynamic_reconfigure](https://wiki.ros.org/dynamic_reconfigure), see the section "Dynamic
 > parameters" below. When more than 1 frame is enabled an HDR capture is performed.
 > The resulting point cloud and depth/color images are published as ROS topics.
 
-`camera_info/model_name (zivid_camera/CameraInfoModelName)`
+`camera_info/model_name` ([zivid_camera/CameraInfoModelName](./zivid_camera/srv/CameraInfoModelName.srv))
 > Returns the camera's model name.
 
-`camera_info/serial_number (zivid_camera/CameraInfoSerialNumber)`
+`camera_info/serial_number` ([zivid_camera/CameraInfoSerialNumber](./zivid_camera/srv/CameraInfoSerialNumber.srv))
 > Returns the camera's serial number.
 
 ## Topics
+`color/camera_info` ([sensor_msgs/CameraInfo](http://docs.ros.org/api/sensor_msgs/html/msg/CameraInfo.html))
+> Camera calibration and metadata.
 
-`depth/points (sensor_msgs/PointCloud2)`
+`color/image_color` ([sensor_msgs/Image](http://docs.ros.org/api/sensor_msgs/html/msg/Image.html))
+> RGB image. The image is encoded as "rgb8".
+
+`depth/points` ([sensor_msgs/PointCloud2](http://docs.ros.org/api/sensor_msgs/html/msg/PointCloud2.html))
 > Point cloud data. Each time a capture is invoked the resulting point cloud is published
 > on this topic. The included point fields are x, y, z (in meters), c (contrast value),
 > and r, g, b (colors). The output is in the camera's optical frame, where x is right, y is
 > down and z is forward.
 
-`depth/image (sensor_msgs/Image)`
+`depth/camera_info` ([sensor_msgs/CameraInfo](http://docs.ros.org/api/sensor_msgs/html/msg/CameraInfo.html))
+> Camera calibration and metadata.
+
+`depth/image_raw` ([sensor_msgs/Image](http://docs.ros.org/api/sensor_msgs/html/msg/Image.html))
 > Depth image. Each pixel contains the z-value (along the camera Z axis) in meters.
 > The image is encoded as 32-bit float. Pixels where z-value is missing are NaN.
-
-`rgb/image_color (sensor_msgs/Image)`
-> RGB image. The image is encoded as "rgb8".
 
 ## Configuration
 
@@ -216,32 +221,36 @@ See the sample code for how to do this.
 
 ### List of dynamic reconfigure parameters
 
+#### General settings
+
 `capture_general/*`
 > The settings here applies to all the frames. Contains filters and color balance.
 
 TODO: extend documentation.
 
-`frame_settings/frame_<n>/enabled (bool)`
+#### Per-frame settings
+
+`frame_settings/frame_<n>/enabled` (bool)
 > Controls if the frame `<n>` is enabled. When the frame is enabled it will be included
 > in captures. The default value is false.
 
-`frame_settings/frame_<n>/bidirectional (bool)`
+`frame_settings/frame_<n>/bidirectional` (bool)
 > Corresponds to the API setting [Zivid::Settings::Bidirectional](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Bidirectional.html).
 > Available since Zivid Core 1.2.
 
-`frame_settings/frame_<n>/brightness (double)`
+`frame_settings/frame_<n>/brightness` (double)
 > Corresponds to the API setting [Zivid::Settings::Brightness](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Brightness.html).
 > Available since Zivid Core 1.2.
 
-`frame_settings/frame_<n>/exposure_time (double)`
+`frame_settings/frame_<n>/exposure_time` (double)
 > Corresponds to the API setting [Zivid::Settings::ExposureTime](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1ExposureTime.html). Per ROS convention it is specified in seconds instead of milliseconds.
 > Available since Zivid Core 1.2.
 
-`frame_settings/frame_<n>/gain (double)`
+`frame_settings/frame_<n>/gain` (double)
 > Corresponds to the API setting [Zivid::Settings::Gain](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Gain.html).
 > Available since Zivid Core 1.3.
 
-`frame_settings/frame_<n>/iris (int)`
+`frame_settings/frame_<n>/iris` (int)
 > Corresponds to the API setting [Zivid::Settings::Iris](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Iris.html).
 > Available since Zivid Core 1.2.
 
@@ -249,20 +258,20 @@ TODO: extend documentation.
 
 The following parameters can be specified when starting the `zivid_camera` node.
 
-`serial_number (string, default: "")`
+`serial_number` (string, default: "")
 > Specify the serial number of the Zivid camera to use. Important: When passing this value via
 > the command line or rosparam the serial number must be prefixed with a colon (`:012345`).
 > This parameter is optional. By default the driver will connect to the first available camera.
 
-`num_capture_frames (int, default: 10)`
+`num_capture_frames` (int, default: 10)
 > Specify the number of dynamic_reconfigure capture_frame nodes that are created during startup of
 > the node. This number defines the maximum number of frames in a capture. If you need to perform
 > HDR with more than 10 frames then increase this number.
 
-`frame_id (string, default: "zivid_optical_frame")`
+`frame_id` (string, default: "zivid_optical_frame")
 > Specify the frame_id used for all published images and point clouds.
 
-`file_camera_path (string, default: "")`
+`file_camera_path` (string, default: "")
 > Specify the path to a file camera to use instead of a real Zivid camera. This can be used to
 > develop without access to hardware. The file camera returns the same point cloud for every capture.
 > [Click here to download a file camera.](https://www.zivid.com/software/ZividSampleData.zip)
@@ -287,7 +296,7 @@ rosrun zivid_samples zivid_samples_capture
 **Python** [(Source code)](./zivid_samples/scripts/sample_capture.py)
 ```
 cd ~/catkin_ws && source devel/setup.bash
-rosrun zivid_samples scripts/sample_capture.py
+rosrun zivid_samples sample_capture.py
 ```
 
 ## Nodelet
