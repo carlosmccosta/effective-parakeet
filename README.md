@@ -4,15 +4,16 @@
 
 THIS DRIVER IS WORK IN PROGRESS. IT WILL CHANGE BEFORE FINAL RELEASE.
 
-**Only Ubuntu 18.04 with ROS Melodic has been tested.**
-
 This is the official ROS package for Zivid 3D cameras. This enables usage of Zivid cameras as
-a node/nodelet in ROS. Read more about Zivid at [our website](https://www.zivid.com/). Please report
-any issues or feature requests in the issue tracker.
+a node/nodelet in ROS. Read more about Zivid at [our website](https://www.zivid.com/).
+
+<p align="center">
+    <img src="https://www.zivid.com/software/zivid-ros/ros_zivid_camera.png" width="600" height="273">
+</p>
 
 ## Installation
 Follow this step-by-step guide to install the Zivid ROS driver on your system.
-This package supports Ubuntu 18.04 and ROS version Melodic Morenia.
+This package supports Ubuntu 18.04 and ROS Melodic Morenia.
 
 ### Prerequisites
 
@@ -258,23 +259,23 @@ TODO: extend documentation.
 
 The following parameters can be specified when starting the `zivid_camera` node.
 
-`serial_number` (string, default: "")
-> Specify the serial number of the Zivid camera to use. Important: When passing this value via
-> the command line or rosparam the serial number must be prefixed with a colon (`:012345`).
-> This parameter is optional. By default the driver will connect to the first available camera.
+`file_camera_path` (string, default: "")
+> Specify the path to a file camera to use instead of a real Zivid camera. This can be used to
+> develop without access to hardware. The file camera returns the same point cloud for every capture.
+> [Click here to download a file camera.](https://www.zivid.com/software/ZividSampleData.zip)
+
+`frame_id` (string, default: "zivid_optical_frame")
+> Specify the frame_id used for all published images and point clouds.
 
 `num_capture_frames` (int, default: 10)
 > Specify the number of dynamic_reconfigure capture_frame nodes that are created during startup of
 > the node. This number defines the maximum number of frames in a capture. If you need to perform
 > HDR with more than 10 frames then increase this number.
 
-`frame_id` (string, default: "zivid_optical_frame")
-> Specify the frame_id used for all published images and point clouds.
-
-`file_camera_path` (string, default: "")
-> Specify the path to a file camera to use instead of a real Zivid camera. This can be used to
-> develop without access to hardware. The file camera returns the same point cloud for every capture.
-> [Click here to download a file camera.](https://www.zivid.com/software/ZividSampleData.zip)
+`serial_number` (string, default: "")
+> Specify the serial number of the Zivid camera to use. Important: When passing this value via
+> the command line or rosparam the serial number must be prefixed with a colon (`:012345`).
+> This parameter is optional. By default the driver will connect to the first available camera.
 
 ## Samples
 
@@ -345,13 +346,13 @@ rosconsole set /zivid_camera/zivid_camera ros.zivid_camera debug
 This project comes with a set of unit and module tests to verify the provided functionality.
 The tests can be run via docker and locally.
 
-### Test via docker
+### Run tests via docker
 ```
 cd ~/catkin_ws/src/zivid_ros/
 OS=ros:melodic-ros-base-bionic ./continuous-integration/ci_test.sh
 ```
 
-### Test locally
+### Run tests locally
 
 First download and install the file camera used for testing.
 ```
@@ -368,3 +369,15 @@ Then run the tests
 cd ~/catkin_ws && source devel/setup.bash
 catkin run_tests && catkin_test_results
 ```
+
+## Feedback
+
+Please report any issues or feature requests in the issue tracker.
+
+## Acknowledgements
+
+<img src="https://www.zivid.com/software/zivid-ros/rosin_logo.png">
+
+This FTP (Focused Technical Project) has received funding from the European Union’s
+Horizon 2020 research and innovation programme under the project ROSIN with the
+grant agreement No 732287. For more information, visit [rosin-project.eu](http://rosin-project.eu/).
