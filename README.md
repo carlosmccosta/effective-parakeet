@@ -33,7 +33,7 @@ Follow the guide at https://help.zivid.com to install OpenCL (search for Install
 
 #### Zivid Core Library
 Download and install the "Toshiba Teli driver" and "Zivid Core" debian packages from
-[our webpage](https://www.zivid.com/downloads).
+[our webpage](https://www.zivid.com/downloads). Version 1.3 or newer is required.
 
 Optionally install the "Zivid Studio" and "Zivid Tools" packages as well. They are not required by the ROS
 driver but can be useful for testing that your system has been setup correctly and that
@@ -237,23 +237,18 @@ TODO: extend documentation.
 
 `frame_settings/frame_<n>/bidirectional` (bool)
 > Corresponds to the API setting [Zivid::Settings::Bidirectional](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Bidirectional.html).
-> Available since Zivid Core 1.2.
 
 `frame_settings/frame_<n>/brightness` (double)
 > Corresponds to the API setting [Zivid::Settings::Brightness](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Brightness.html).
-> Available since Zivid Core 1.2.
 
 `frame_settings/frame_<n>/exposure_time` (double)
 > Corresponds to the API setting [Zivid::Settings::ExposureTime](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1ExposureTime.html). Per ROS convention it is specified in seconds instead of milliseconds.
-> Available since Zivid Core 1.2.
 
 `frame_settings/frame_<n>/gain` (double)
 > Corresponds to the API setting [Zivid::Settings::Gain](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Gain.html).
-> Available since Zivid Core 1.3.
 
 `frame_settings/frame_<n>/iris` (int)
 > Corresponds to the API setting [Zivid::Settings::Iris](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Iris.html).
-> Available since Zivid Core 1.2.
 
 ## Launch Parameters
 
