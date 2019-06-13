@@ -62,7 +62,7 @@ ros::ServiceServer advertiseService(ros::NodeHandle& nh, const std::string& name
 zivid_camera::ZividCamera::ZividCamera(ros::NodeHandle& nh)
   : nh_(nh)
   , priv_("~")
-  , currentCaptureGeneralConfig_(decltype(currentCaptureGeneralConfig_)::__getDefault__())
+  , current_capture_general_config_(decltype(current_capture_general_config_)::__getDefault__())
   , image_transport_(nh_)
   , header_seq_(0)
 {
@@ -158,13 +158,13 @@ zivid_camera::ZividCamera::ZividCamera(ros::NodeHandle& nh)
   }
   ROS_INFO("Connected to camera");
 
-  const auto cameraSettings = camera_.settings();
-  setupCaptureGeneralConfigNode(cameraSettings);
+  const auto camera_settings = camera_.settings();
+  setupCaptureGeneralConfigNode(camera_settings);
 
   ROS_INFO("Setting up %d capture_frame dynamic_reconfigure nodes", num_capture_frames);
   for (int i = 0; i < num_capture_frames; i++)
   {
-    setupCaptureFrameConfigNode(i, cameraSettings);
+    setupCaptureFrameConfigNode(i, camera_settings);
   }
 
   ROS_INFO("Advertising topics");
@@ -200,15 +200,15 @@ void zivid_camera::ZividCamera::setupCaptureGeneralConfigNode(const Zivid::Setti
       capture_general_dr_server_mutex_, ros::NodeHandle(nh_, "capture_general"));
 
   // Setup min, max, default and current config
-  const auto minConfig = getCaptureGeneralConfigMinFromZividSettings(defaultSettings);
-  capture_general_dr_server_->setConfigMin(minConfig);
+  const auto min_config = getCaptureGeneralConfigMinFromZividSettings(defaultSettings);
+  capture_general_dr_server_->setConfigMin(min_config);
 
-  const auto maxConfig = getCaptureGeneralConfigMaxFromZividSettings(defaultSettings);
-  capture_general_dr_server_->setConfigMax(maxConfig);
+  const auto max_config = getCaptureGeneralConfigMaxFromZividSettings(defaultSettings);
+  capture_general_dr_server_->setConfigMax(max_config);
 
-  const auto defaultConfig = getCaptureGeneralConfigDefaultFromZividSettings(defaultSettings);
-  capture_general_dr_server_->setConfigDefault(defaultConfig);
-  capture_general_dr_server_->updateConfig(defaultConfig);
+  const auto default_config = getCaptureGeneralConfigDefaultFromZividSettings(defaultSettings);
+  capture_general_dr_server_->setConfigDefault(default_config);
+  capture_general_dr_server_->updateConfig(default_config);
 
   // Setup the cb, this will invoke the cb, ensuring that the locally cached
   // config is updated.
@@ -224,12 +224,12 @@ void zivid_camera::ZividCamera::setupCaptureFrameConfigNode(int nodeIdx, const Z
   const auto minConfig = getCaptureFrameConfigMinFromZividSettings(defaultSettings);
   frame_config->dr_server.setConfigMin(minConfig);
 
-  const auto maxConfig = getCaptureFrameConfigMaxFromZividSettings(defaultSettings);
-  frame_config->dr_server.setConfigMax(maxConfig);
+  const auto max_config = getCaptureFrameConfigMaxFromZividSettings(defaultSettings);
+  frame_config->dr_server.setConfigMax(max_config);
 
-  const auto defaultConfig = getCaptureFrameConfigDefaultFromZividSettings(defaultSettings);
-  frame_config->dr_server.setConfigDefault(defaultConfig);
-  frame_config->dr_server.updateConfig(defaultConfig);
+  const auto default_config = getCaptureFrameConfigDefaultFromZividSettings(defaultSettings);
+  frame_config->dr_server.setConfigDefault(default_config);
+  frame_config->dr_server.updateConfig(default_config);
 
   // Setup the cb, this will invoke the cb, ensuring that frame_config.config is updated.
   frame_config->dr_server.setCallback(boost::bind(&zivid_camera::ZividCamera::onCaptureFrameConfigChanged, this, _1, _2,
@@ -241,14 +241,14 @@ void zivid_camera::ZividCamera::setupCaptureFrameConfigNode(int nodeIdx, const Z
 void zivid_camera::ZividCamera::onCaptureGeneralConfigChanged(zivid_camera::CaptureGeneralConfig& config, uint32_t)
 {
   ROS_INFO("%s", __func__);
-  currentCaptureGeneralConfig_ = config;
+  current_capture_general_config_ = config;
 }
 
 void zivid_camera::ZividCamera::onCaptureFrameConfigChanged(zivid_camera::CaptureFrameConfig& config, uint32_t,
-                                                            DRFrameConfig& frameConfig)
+                                                            DRFrameConfig& frame_config)
 {
-  ROS_INFO("%s name='%s'", __func__, frameConfig.name.c_str());
-  frameConfig.config = config;
+  ROS_INFO("%s name='%s'", __func__, frame_config.name.c_str());
+  frame_config.config = config;
 }
 
 bool zivid_camera::ZividCamera::captureServiceHandler(zivid_camera::Capture::Request&, zivid_camera::Capture::Response&)
@@ -257,15 +257,15 @@ bool zivid_camera::ZividCamera::captureServiceHandler(zivid_camera::Capture::Req
 
   std::vector<Zivid::Settings> settings;
 
-  Zivid::Settings baseSetting = camera_.settings();
-  applyCaptureGeneralConfigToZividSettings(currentCaptureGeneralConfig_, baseSetting);
+  Zivid::Settings base_setting = camera_.settings();
+  applyCaptureGeneralConfigToZividSettings(current_capture_general_config_, base_setting);
 
   for (const auto& frame_config : frame_configs_)
   {
     if (frame_config->config.enabled)
     {
       ROS_DEBUG("Config %s is enabled", frame_config->name.c_str());
-      Zivid::Settings s{ baseSetting };
+      Zivid::Settings s{ base_setting };
       applyCaptureFrameConfigToZividSettings(frame_config->config, s);
       settings.push_back(s);
     }
@@ -306,11 +306,11 @@ bool zivid_camera::ZividCamera::captureServiceHandler(zivid_camera::Capture::Req
 
 void zivid_camera::ZividCamera::publishFrame(Zivid::Frame&& frame)
 {
-  const bool hasPointCloudSubs = point_cloud_publisher_.getNumSubscribers() > 0;
-  const bool hasColorImgSubs = color_image_publisher_.getNumSubscribers() > 0;
-  const bool hasDepthImgSubs = depth_image_publisher_.getNumSubscribers() > 0;
+  const bool has_point_cloud_subs = point_cloud_publisher_.getNumSubscribers() > 0;
+  const bool has_color_img_subs = color_image_publisher_.getNumSubscribers() > 0;
+  const bool has_depth_img_subs = depth_image_publisher_.getNumSubscribers() > 0;
 
-  if (hasPointCloudSubs || hasColorImgSubs || hasDepthImgSubs)
+  if (has_point_cloud_subs || has_color_img_subs || has_depth_img_subs)
   {
     auto point_cloud = frame.getPointCloud();
 
@@ -319,23 +319,23 @@ void zivid_camera::ZividCamera::publishFrame(Zivid::Frame&& frame)
     header.stamp = ros::Time::now();
     header.frame_id = frame_id_;
 
-    if (hasPointCloudSubs)
+    if (has_point_cloud_subs)
     {
       ROS_INFO("Publishing point cloud");
       point_cloud_publisher_.publish(makePointCloud2(header, point_cloud));
     }
 
-    if (hasColorImgSubs || hasDepthImgSubs)
+    if (has_color_img_subs || has_depth_img_subs)
     {
       auto camera_info = makeCameraInfo(header, point_cloud, camera_.intrinsics());
 
-      if (hasColorImgSubs)
+      if (has_color_img_subs)
       {
         ROS_INFO("Publishing color image");
         color_image_publisher_.publish(makeColorImage(header, point_cloud), camera_info);
       }
 
-      if (hasDepthImgSubs)
+      if (has_depth_img_subs)
       {
         ROS_INFO("Publishing depth image");
         depth_image_publisher_.publish(makeDepthImage(header, point_cloud), camera_info);
@@ -439,11 +439,11 @@ sensor_msgs::CameraInfo zivid_camera::ZividCamera::makeCameraInfo(const std_msgs
   //     [fx  0 cx]
   // K = [ 0 fy cy]
   //     [ 0  0  1]
-  const auto cameraMatrix = intrinsics.cameraMatrix();
-  camera_info.K[0] = cameraMatrix.fx().value();
-  camera_info.K[2] = cameraMatrix.cx().value();
-  camera_info.K[4] = cameraMatrix.fy().value();
-  camera_info.K[5] = cameraMatrix.cy().value();
+  const auto camera_matrix = intrinsics.cameraMatrix();
+  camera_info.K[0] = camera_matrix.fx().value();
+  camera_info.K[2] = camera_matrix.cx().value();
+  camera_info.K[4] = camera_matrix.fy().value();
+  camera_info.K[5] = camera_matrix.cy().value();
   camera_info.K[8] = 1;
 
   // R (identity)
@@ -455,10 +455,10 @@ sensor_msgs::CameraInfo zivid_camera::ZividCamera::makeCameraInfo(const std_msgs
   //     [fx'  0  cx' Tx]
   // P = [ 0  fy' cy' Ty]
   //     [ 0   0   1   0]
-  camera_info.P[0] = cameraMatrix.fx().value();
-  camera_info.P[2] = cameraMatrix.cx().value();
-  camera_info.P[5] = cameraMatrix.fy().value();
-  camera_info.P[6] = cameraMatrix.cy().value();
+  camera_info.P[0] = camera_matrix.fx().value();
+  camera_info.P[2] = camera_matrix.cx().value();
+  camera_info.P[5] = camera_matrix.fy().value();
+  camera_info.P[6] = camera_matrix.cy().value();
   camera_info.P[10] = 1;
 
   return camera_info;

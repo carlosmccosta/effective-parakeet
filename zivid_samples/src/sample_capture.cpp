@@ -45,23 +45,23 @@ int main(int argc, char** argv)
   ros::Subscriber sub = n.subscribe("/zivid_camera/depth/points", 1, onPointCloud);
 
   ROS_INFO("Enable the reflection filter");
-  dynamic_reconfigure::Client<zivid_camera::CaptureGeneralConfig> captureGeneralClient("/zivid_camera/"
-                                                                                       "capture_general/");
+  dynamic_reconfigure::Client<zivid_camera::CaptureGeneralConfig> capture_general_client("/zivid_camera/"
+                                                                                         "capture_general/");
   zivid_camera::CaptureGeneralConfig config;
-  CHECK(captureGeneralClient.getCurrentConfiguration(config, ros::Duration(15)));
+  CHECK(capture_general_client.getCurrentConfiguration(config, ros::Duration(15)));
   config.filters_reflection_enabled = true;
-  CHECK(captureGeneralClient.setConfiguration(config));
+  CHECK(capture_general_client.setConfiguration(config));
 
   ROS_INFO("Enable and configure the first frame");
-  dynamic_reconfigure::Client<zivid_camera::CaptureFrameConfig> frame0Client("/zivid_camera/capture_frame/frame_0/");
+  dynamic_reconfigure::Client<zivid_camera::CaptureFrameConfig> frame_0_client("/zivid_camera/capture_frame/frame_0/");
 
-  zivid_camera::CaptureFrameConfig frame0Cfg;
-  CHECK(frame0Client.getDefaultConfiguration(frame0Cfg, ros::Duration(15)));
+  zivid_camera::CaptureFrameConfig frame_0_cfg;
+  CHECK(frame_0_client.getDefaultConfiguration(frame_0_cfg, ros::Duration(15)));
 
-  frame0Cfg.enabled = true;
-  frame0Cfg.iris = 22;
-  frame0Cfg.exposure_time = 0.02;
-  CHECK(frame0Client.setConfiguration(frame0Cfg));
+  frame_0_cfg.enabled = true;
+  frame_0_cfg.iris = 22;
+  frame_0_cfg.exposure_time = 0.02;
+  CHECK(frame_0_client.setConfiguration(frame_0_cfg));
 
   capture();
 

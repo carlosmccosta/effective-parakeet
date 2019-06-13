@@ -17,13 +17,13 @@ class ZividNodeTest : public testing::Test
 protected:
   ros::NodeHandle nh_;
 
-  const ros::Duration defaultWaitDuration{ 5 };
-  static constexpr auto captureServiceName = "/zivid_camera/capture";
-  static constexpr auto colorCameraInfoTopicName = "/zivid_camera/color/camera_info";
-  static constexpr auto colorCameraImageColorTopicName = "/zivid_camera/color/image_color";
-  static constexpr auto depthCameraInfoTopicName = "/zivid_camera/depth/camera_info";
-  static constexpr auto depthImageRawTopicName = "/zivid_camera/depth/image_raw";
-  static constexpr auto depthPointsTopicName = "/zivid_camera/depth/points";
+  const ros::Duration default_wait_duration{ 5 };
+  static constexpr auto capture_service_name = "/zivid_camera/capture";
+  static constexpr auto color_camera_info_topic_name = "/zivid_camera/color/camera_info";
+  static constexpr auto color_image_color_topic_name = "/zivid_camera/color/image_color";
+  static constexpr auto depth_camera_info_topic_name = "/zivid_camera/depth/camera_info";
+  static constexpr auto depth_image_raw_topic_name = "/zivid_camera/depth/image_raw";
+  static constexpr auto depth_points_topic_name = "/zivid_camera/depth/points";
 
   class SubscriptionWrapper
   {
@@ -32,7 +32,7 @@ protected:
     static SubscriptionWrapper make(ros::NodeHandle& nh, const std::string& name, Fn&& fn)
     {
       SubscriptionWrapper w;
-      boost::function<void(const boost::shared_ptr<const Type>&)> cb = [ptr = w.numMessages_.get(),
+      boost::function<void(const boost::shared_ptr<const Type>&)> cb = [ptr = w.num_messages_.get(),
                                                                         fn = std::move(fn)](const auto& v) mutable {
         (*ptr)++;
         fn(v);
@@ -43,15 +43,15 @@ protected:
 
     std::size_t numMessages() const
     {
-      return *numMessages_;
+      return *num_messages_;
     }
 
   private:
-    SubscriptionWrapper() : numMessages_(std::make_unique<std::size_t>(0))
+    SubscriptionWrapper() : num_messages_(std::make_unique<std::size_t>(0))
     {
     }
     ros::Subscriber subscriber_;
-    std::unique_ptr<std::size_t> numMessages_;
+    std::unique_ptr<std::size_t> num_messages_;
   };
 
   void sleepAndSpin(ros::Duration duration)
@@ -62,17 +62,18 @@ protected:
 
   void waitForReady()
   {
-    ASSERT_TRUE(ros::service::waitForService(captureServiceName, defaultWaitDuration));
+    ASSERT_TRUE(ros::service::waitForService(capture_service_name, default_wait_duration));
   }
 
   void enableFirstFrame()
   {
-    dynamic_reconfigure::Client<zivid_camera::CaptureFrameConfig> frame0Client("/zivid_camera/capture_frame/frame_0/");
+    dynamic_reconfigure::Client<zivid_camera::CaptureFrameConfig> frame_0_client("/zivid_camera/capture_frame/"
+                                                                                 "frame_0/");
     sleepAndSpin(ros::Duration(1));
-    zivid_camera::CaptureFrameConfig frame0Cfg;
-    ASSERT_TRUE(frame0Client.getDefaultConfiguration(frame0Cfg, defaultWaitDuration));
-    frame0Cfg.enabled = true;
-    ASSERT_TRUE(frame0Client.setConfiguration(frame0Cfg));
+    zivid_camera::CaptureFrameConfig frame_0_cfg;
+    ASSERT_TRUE(frame_0_client.getDefaultConfiguration(frame_0_cfg, default_wait_duration));
+    frame_0_cfg.enabled = true;
+    ASSERT_TRUE(frame_0_client.setConfiguration(frame_0_cfg));
   }
 
   template <class Type, class Fn>
@@ -101,77 +102,77 @@ protected:
 TEST_F(ZividNodeTest, testServiceCameraInfoModelName)
 {
   waitForReady();
-  zivid_camera::CameraInfoModelName modelName;
-  ASSERT_TRUE(ros::service::call("/zivid_camera/camera_info/model_name", modelName));
-  ASSERT_EQ(modelName.response.model_name, std::string("FileCamera-") + ZIVID_VERSION);
+  zivid_camera::CameraInfoModelName model_name;
+  ASSERT_TRUE(ros::service::call("/zivid_camera/camera_info/model_name", model_name));
+  ASSERT_EQ(model_name.response.model_name, std::string("FileCamera-") + ZIVID_VERSION);
 }
 
 TEST_F(ZividNodeTest, testServiceCameraInfoSerialNumber)
 {
   waitForReady();
-  zivid_camera::CameraInfoSerialNumber serialNumber;
-  ASSERT_TRUE(ros::service::call("/zivid_camera/camera_info/serial_number", serialNumber));
-  ASSERT_EQ(serialNumber.response.serial_number, "F1");
+  zivid_camera::CameraInfoSerialNumber serial_number;
+  ASSERT_TRUE(ros::service::call("/zivid_camera/camera_info/serial_number", serial_number));
+  ASSERT_EQ(serial_number.response.serial_number, "F1");
 }
 
 TEST_F(ZividNodeTest, testCapturePublishesTopics)
 {
   waitForReady();
 
-  auto colorCameraInfoSub = subscribe<sensor_msgs::CameraInfo>(colorCameraInfoTopicName);
-  auto colorCameraImageColorSub = subscribe<sensor_msgs::Image>(colorCameraImageColorTopicName);
-  auto depthCameraInfoSub = subscribe<sensor_msgs::CameraInfo>(depthCameraInfoTopicName);
-  auto depthImageRawSub = subscribe<sensor_msgs::Image>(depthImageRawTopicName);
-  auto depthPointsSub = subscribe<sensor_msgs::PointCloud2>(depthPointsTopicName);
+  auto color_camera_info_sub = subscribe<sensor_msgs::CameraInfo>(color_camera_info_topic_name);
+  auto color_image_color_sub = subscribe<sensor_msgs::Image>(color_image_color_topic_name);
+  auto depth_camera_info_sub = subscribe<sensor_msgs::CameraInfo>(depth_camera_info_topic_name);
+  auto depth_image_raw_sub = subscribe<sensor_msgs::Image>(depth_image_raw_topic_name);
+  auto depth_points_sub = subscribe<sensor_msgs::PointCloud2>(depth_points_topic_name);
 
-  auto assertNumTopicsReceived = [&](std::size_t numTopics) {
-    ASSERT_EQ(colorCameraInfoSub.numMessages(), numTopics);
-    ASSERT_EQ(colorCameraImageColorSub.numMessages(), numTopics);
-    ASSERT_EQ(depthCameraInfoSub.numMessages(), numTopics);
-    ASSERT_EQ(depthImageRawSub.numMessages(), numTopics);
-    ASSERT_EQ(depthPointsSub.numMessages(), numTopics);
+  auto assert_num_topics_received = [&](std::size_t numTopics) {
+    ASSERT_EQ(color_camera_info_sub.numMessages(), numTopics);
+    ASSERT_EQ(color_image_color_sub.numMessages(), numTopics);
+    ASSERT_EQ(depth_camera_info_sub.numMessages(), numTopics);
+    ASSERT_EQ(depth_image_raw_sub.numMessages(), numTopics);
+    ASSERT_EQ(depth_points_sub.numMessages(), numTopics);
   };
 
   sleepAndSpin(ros::Duration(1));
-  assertNumTopicsReceived(0);
+  assert_num_topics_received(0);
 
   zivid_camera::Capture capture;
   // Capture fails when no frames are enabled
-  ASSERT_FALSE(ros::service::call(captureServiceName, capture));
+  ASSERT_FALSE(ros::service::call(capture_service_name, capture));
   sleepAndSpin(ros::Duration(1));
-  assertNumTopicsReceived(0);
+  assert_num_topics_received(0);
 
   enableFirstFrame();
 
-  ASSERT_TRUE(ros::service::call(captureServiceName, capture));
+  ASSERT_TRUE(ros::service::call(capture_service_name, capture));
   sleepAndSpin(ros::Duration(1));
-  assertNumTopicsReceived(1);
+  assert_num_topics_received(1);
 
-  ASSERT_TRUE(ros::service::call(captureServiceName, capture));
+  ASSERT_TRUE(ros::service::call(capture_service_name, capture));
   sleepAndSpin(ros::Duration(1));
-  assertNumTopicsReceived(2);
+  assert_num_topics_received(2);
 
-  ASSERT_TRUE(ros::service::call(captureServiceName, capture));
+  ASSERT_TRUE(ros::service::call(capture_service_name, capture));
   sleepAndSpin(ros::Duration(1));
-  assertNumTopicsReceived(3);
+  assert_num_topics_received(3);
 
   sleepAndSpin(ros::Duration(3));
-  assertNumTopicsReceived(3);
+  assert_num_topics_received(3);
 }
 
 TEST_F(ZividNodeTest, testCaptureCameraInfo)
 {
   waitForReady();
 
-  std::optional<sensor_msgs::CameraInfo> colorCameraInfo;
-  auto colorCameraInfoSub =
-      subscribe<sensor_msgs::CameraInfo>(colorCameraInfoTopicName, [&](const auto& r) { colorCameraInfo = *r; });
+  std::optional<sensor_msgs::CameraInfo> color_camera_info;
+  auto color_camera_info_sub =
+      subscribe<sensor_msgs::CameraInfo>(color_camera_info_topic_name, [&](const auto& r) { color_camera_info = *r; });
 
-  std::optional<sensor_msgs::CameraInfo> depthCameraInfo;
-  auto depthCameraInfoSub =
-      subscribe<sensor_msgs::CameraInfo>(depthCameraInfoTopicName, [&](const auto& r) { depthCameraInfo = *r; });
+  std::optional<sensor_msgs::CameraInfo> depth_camera_info;
+  auto depth_camera_info_sub =
+      subscribe<sensor_msgs::CameraInfo>(depth_camera_info_topic_name, [&](const auto& r) { depth_camera_info = *r; });
 
-  auto assertCameraInfoForFileCamera = [this](const sensor_msgs::CameraInfo& ci) {
+  auto assert_camera_info_for_file_camera = [this](const sensor_msgs::CameraInfo& ci) {
     ASSERT_EQ(ci.width, 1920);
     ASSERT_EQ(ci.height, 1200);
     ASSERT_EQ(ci.distortion_model, "plumb_bob");
@@ -194,16 +195,16 @@ TEST_F(ZividNodeTest, testCaptureCameraInfo)
 
   enableFirstFrame();
   zivid_camera::Capture capture;
-  ASSERT_TRUE(ros::service::call(captureServiceName, capture));
+  ASSERT_TRUE(ros::service::call(capture_service_name, capture));
   sleepAndSpin(ros::Duration(1));
 
-  ASSERT_EQ(colorCameraInfoSub.numMessages(), 1);
-  ASSERT_EQ(depthCameraInfoSub.numMessages(), 1);
+  ASSERT_EQ(color_camera_info_sub.numMessages(), 1);
+  ASSERT_EQ(depth_camera_info_sub.numMessages(), 1);
 
-  ASSERT_TRUE(colorCameraInfo);
-  assertCameraInfoForFileCamera(*colorCameraInfo);
-  ASSERT_TRUE(depthCameraInfo);
-  assertCameraInfoForFileCamera(*depthCameraInfo);
+  ASSERT_TRUE(color_camera_info);
+  assert_camera_info_for_file_camera(*color_camera_info);
+  ASSERT_TRUE(depth_camera_info);
+  assert_camera_info_for_file_camera(*depth_camera_info);
 }
 
 int main(int argc, char** argv)

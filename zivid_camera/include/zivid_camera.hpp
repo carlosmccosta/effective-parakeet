@@ -1,8 +1,6 @@
 #ifndef ZIVID_CAMERA_H
 #define ZIVID_CAMERA_H
 
-#include <ros/ros.h>
-
 #include <zivid_camera/CaptureFrameConfig.h>
 #include <zivid_camera/CaptureGeneralConfig.h>
 #include <zivid_camera/Capture.h>
@@ -13,6 +11,8 @@
 #include <image_transport/image_transport.h>
 
 #include <dynamic_reconfigure/server.h>
+
+#include <ros/ros.h>
 
 #include <Zivid/Application.h>
 #include <Zivid/Camera.h>
@@ -44,11 +44,11 @@ private:
     CfgType config;
   };
 
-  void setupCaptureGeneralConfigNode(const Zivid::Settings& cameraSettings);
-  void setupCaptureFrameConfigNode(int nodeIdx, const Zivid::Settings& cameraSettings);
+  void setupCaptureGeneralConfigNode(const Zivid::Settings& camera_settings);
+  void setupCaptureFrameConfigNode(int nodeIdx, const Zivid::Settings& camera_settings);
   void onCaptureGeneralConfigChanged(zivid_camera::CaptureGeneralConfig& config, uint32_t level);
   void onCaptureFrameConfigChanged(zivid_camera::CaptureFrameConfig& config, uint32_t level,
-                                   DRFrameConfig& frameConfig);
+                                   DRFrameConfig& frame_config);
   bool captureServiceHandler(zivid_camera::Capture::Request& req, zivid_camera::Capture::Response& res);
   void publishFrame(Zivid::Frame&& frame);
   sensor_msgs::PointCloud2 makePointCloud2(const std_msgs::Header& header, const Zivid::PointCloud& point_cloud);
@@ -61,7 +61,7 @@ private:
   ros::NodeHandle priv_;
   boost::recursive_mutex capture_general_dr_server_mutex_;
   std::unique_ptr<dynamic_reconfigure::Server<zivid_camera::CaptureGeneralConfig>> capture_general_dr_server_;
-  zivid_camera::CaptureGeneralConfig currentCaptureGeneralConfig_;
+  zivid_camera::CaptureGeneralConfig current_capture_general_config_;
   ros::Publisher point_cloud_publisher_;
   image_transport::ImageTransport image_transport_;
   image_transport::CameraPublisher color_image_publisher_;

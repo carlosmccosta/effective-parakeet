@@ -327,20 +327,20 @@ class ConfigUtilsHeaderGenerator
 {
 public:
   ConfigUtilsHeaderGenerator(const std::string& className)
-    : applyConfigToZividSettingsGen(className)
-    , getConfigMinFromZividSettingsGen(className, GetConfigMinMaxDefFromZividSettingsGenerator::Type::Min)
-    , getConfigMaxFromZividSettingsGen(className, GetConfigMinMaxDefFromZividSettingsGenerator::Type::Max)
-    , getConfigDefFromZividSettingsGen(className, GetConfigMinMaxDefFromZividSettingsGenerator::Type::Default)
+    : apply_config_zivid_settings_gen(className)
+    , get_config_min_from_zivid_settings_gen(className, GetConfigMinMaxDefFromZividSettingsGenerator::Type::Min)
+    , get_config_max_from_zivid_settings_gen(className, GetConfigMinMaxDefFromZividSettingsGenerator::Type::Max)
+    , get_config_def_from_zivid_settings_gen(className, GetConfigMinMaxDefFromZividSettingsGenerator::Type::Default)
   {
   }
 
   template <class ZividSetting>
   void apply(const ZividSetting& s)
   {
-    applyConfigToZividSettingsGen.apply(s);
-    getConfigMinFromZividSettingsGen.apply(s);
-    getConfigMaxFromZividSettingsGen.apply(s);
-    getConfigDefFromZividSettingsGen.apply(s);
+    apply_config_zivid_settings_gen.apply(s);
+    get_config_min_from_zivid_settings_gen.apply(s);
+    get_config_max_from_zivid_settings_gen.apply(s);
+    get_config_def_from_zivid_settings_gen.apply(s);
   }
 
   std::string str()
@@ -348,64 +348,64 @@ public:
     std::stringstream res;
     res << "#pragma once\n\n";
     res << "// This is an auto-generated header. Do not edit.\n\n";
-    res << applyConfigToZividSettingsGen.str() << "\n";
-    res << getConfigMinFromZividSettingsGen.str() << "\n";
-    res << getConfigMaxFromZividSettingsGen.str() << "\n";
-    res << getConfigDefFromZividSettingsGen.str() << "\n";
+    res << apply_config_zivid_settings_gen.str() << "\n";
+    res << get_config_min_from_zivid_settings_gen.str() << "\n";
+    res << get_config_max_from_zivid_settings_gen.str() << "\n";
+    res << get_config_def_from_zivid_settings_gen.str() << "\n";
     return res.str();
   }
 
-  ApplyConfigToZividSettingsGenerator applyConfigToZividSettingsGen;
-  GetConfigMinMaxDefFromZividSettingsGenerator getConfigMinFromZividSettingsGen;
-  GetConfigMinMaxDefFromZividSettingsGenerator getConfigMaxFromZividSettingsGen;
-  GetConfigMinMaxDefFromZividSettingsGenerator getConfigDefFromZividSettingsGen;
+  ApplyConfigToZividSettingsGenerator apply_config_zivid_settings_gen;
+  GetConfigMinMaxDefFromZividSettingsGenerator get_config_min_from_zivid_settings_gen;
+  GetConfigMinMaxDefFromZividSettingsGenerator get_config_max_from_zivid_settings_gen;
+  GetConfigMinMaxDefFromZividSettingsGenerator get_config_def_from_zivid_settings_gen;
 };
 
 class Generator
 {
 public:
-  Generator(const std::string& className) : dynamicReconfigureCfgGenerator(className), configUtilsHeaderGen(className)
+  Generator(const std::string& className) : dynamic_reconfigure_cfg_gen(className), config_utils_header_gen(className)
   {
   }
 
   template <class ZividSetting>
   void apply(const ZividSetting& s)
   {
-    dynamicReconfigureCfgGenerator.apply(s);
-    configUtilsHeaderGen.apply(s);
+    dynamic_reconfigure_cfg_gen.apply(s);
+    config_utils_header_gen.apply(s);
   }
 
-  DynamicReconfigureCfgGenerator dynamicReconfigureCfgGenerator;
-  ConfigUtilsHeaderGenerator configUtilsHeaderGen;
+  DynamicReconfigureCfgGenerator dynamic_reconfigure_cfg_gen;
+  ConfigUtilsHeaderGenerator config_utils_header_gen;
 };
 
 template <typename ZividSetting>
-void traverseGeneralSettingsTree(const ZividSetting& s, Generator& generalSettings)
+void traverseGeneralSettingsTree(const ZividSetting& s, Generator& general_settings)
 {
   if constexpr (ZividSetting::isContainer)
   {
-    s.forEach([&](const auto& c) { traverseGeneralSettingsTree(c, generalSettings); });
+    s.forEach([&](const auto& c) { traverseGeneralSettingsTree(c, general_settings); });
   }
   else
   {
-    generalSettings.apply(s);
+    general_settings.apply(s);
   }
 }
 
 template <typename ZividSetting>
-void traverseSettingsTree(const ZividSetting& s, Generator& generalSettings, Generator& frameSettings)
+void traverseSettingsTree(const ZividSetting& s, Generator& general_settings, Generator& frame_settings)
 {
   if constexpr (isGeneralSetting<ZividSetting>)
   {
-    traverseGeneralSettingsTree(s, generalSettings);
+    traverseGeneralSettingsTree(s, general_settings);
   }
   else if constexpr (ZividSetting::isContainer)
   {
-    s.forEach([&](const auto& c) { traverseSettingsTree(c, generalSettings, frameSettings); });
+    s.forEach([&](const auto& c) { traverseSettingsTree(c, general_settings, frame_settings); });
   }
   else
   {
-    frameSettings.apply(s);
+    frame_settings.apply(s);
   }
 }
 
@@ -421,18 +421,18 @@ void writeToFile(const std::string& file_name, const std::string& text)
 
 int main(int /*argc*/, char** /*argv*/)
 {
-  Generator captureGeneralGen("CaptureGeneral");
-  Generator captureFrameGen("CaptureFrame");
+  Generator capture_general_gen("CaptureGeneral");
+  Generator capture_frame_gen("CaptureFrame");
 
   const auto settings = Zivid::Settings{};
-  traverseSettingsTree(settings, captureGeneralGen, captureFrameGen);
-  captureFrameGen.dynamicReconfigureCfgGenerator.insertEnabled();
+  traverseSettingsTree(settings, capture_general_gen, capture_frame_gen);
+  capture_frame_gen.dynamic_reconfigure_cfg_gen.insertEnabled();
 
-  writeToFile("CaptureGeneral.cfg", captureGeneralGen.dynamicReconfigureCfgGenerator.str());
-  writeToFile("CaptureFrame.cfg", captureFrameGen.dynamicReconfigureCfgGenerator.str());
+  writeToFile("CaptureGeneral.cfg", capture_general_gen.dynamic_reconfigure_cfg_gen.str());
+  writeToFile("CaptureFrame.cfg", capture_frame_gen.dynamic_reconfigure_cfg_gen.str());
 
-  writeToFile("generated_headers/CaptureGeneralConfigUtils.h", captureGeneralGen.configUtilsHeaderGen.str());
-  writeToFile("generated_headers/CaptureFrameConfigUtils.h", captureFrameGen.configUtilsHeaderGen.str());
+  writeToFile("generated_headers/CaptureGeneralConfigUtils.h", capture_general_gen.config_utils_header_gen.str());
+  writeToFile("generated_headers/CaptureFrameConfigUtils.h", capture_frame_gen.config_utils_header_gen.str());
 
   return 0;
 }

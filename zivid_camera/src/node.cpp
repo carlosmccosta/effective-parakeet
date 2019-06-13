@@ -10,9 +10,9 @@ int main(int argc, char** argv)
   nodelet::M_string remap(ros::names::getRemappings());
   nodelet::V_string nargv;
 
-  const auto nodeletName = "zivid_camera/nodelet";
-  ROS_INFO("Loading nodelet %s", nodeletName);
-  nodelet.load(ros::this_node::getName(), nodeletName, remap, nargv);
+  const auto nodelet_name = "zivid_camera/nodelet";
+  ROS_INFO("Loading nodelet %s", nodelet_name);
+  nodelet.load(ros::this_node::getName(), nodelet_name, remap, nargv);
   ros::spin();
   return 0;
 }
