@@ -50,8 +50,7 @@ struct AssertValue
 
 std::string convertSettingsPathToZividClassName(const std::string& path)
 {
-  const auto typeName = boost::replace_all_copy<std::string>(path, "/", "::");
-  return "Zivid::Settings::" + typeName;
+  return "Zivid::Settings::" + boost::replace_all_copy<std::string>(path, "/", "::");
 }
 
 std::string convertSettingsPathToConfigPath(std::string path)

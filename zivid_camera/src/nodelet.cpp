@@ -14,15 +14,15 @@ private:
   {
     try
     {
-      driver = std::make_unique<zivid_camera::ZividCamera>(getNodeHandle());
+      camera = std::make_unique<zivid_camera::ZividCamera>(getNodeHandle());
     }
     catch (const std::exception& e)
     {
-      NODELET_ERROR_STREAM("Failed to initialize driver. Exception: \"" << e.what() << "\"");
+      NODELET_ERROR_STREAM("Failed to initialize camera driver. Exception: \"" << e.what() << "\"");
     }
   };
 
-  std::unique_ptr<zivid_camera::ZividCamera> driver;
+  std::unique_ptr<zivid_camera::ZividCamera> camera;
 };
 
 }  // namespace zivid_camera

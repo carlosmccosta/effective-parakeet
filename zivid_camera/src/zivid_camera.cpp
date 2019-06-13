@@ -371,7 +371,7 @@ sensor_msgs::PointCloud2 zivid_camera::ZividCamera::makePointCloud2(const std_ms
     float* y_ptr = (float*)&(point_ptr[msg.fields[1].offset]);
     float* z_ptr = (float*)&(point_ptr[msg.fields[2].offset]);
 
-    // Convert from mm to m.
+    // Convert from mm to m
     *x_ptr *= 0.001f;
     *y_ptr *= 0.001f;
     *z_ptr *= 0.001f;
@@ -391,9 +391,10 @@ sensor_msgs::Image zivid_camera::ZividCamera::makeColorImage(const std_msgs::Hea
 #pragma omp parallel for
   for (std::size_t i = 0; i < point_cloud.size(); i++)
   {
-    img.data[3 * i + 0] = point_cloud(i).red();
-    img.data[3 * i + 1] = point_cloud(i).green();
-    img.data[3 * i + 2] = point_cloud(i).blue();
+    const auto point = point_cloud(i);
+    img.data[3 * i] = point.red();
+    img.data[3 * i + 1] = point.green();
+    img.data[3 * i + 2] = point.blue();
   }
   return img;
 }
@@ -411,6 +412,7 @@ sensor_msgs::Image zivid_camera::ZividCamera::makeDepthImage(const std_msgs::Hea
   for (std::size_t i = 0; i < point_cloud.size(); i++)
   {
     float* image_data = reinterpret_cast<float*>(&img.data[4 * i]);
+    // Convert from mm to m
     *image_data = point_cloud(i).z * 0.001;
   }
   return img;
