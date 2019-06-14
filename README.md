@@ -155,18 +155,18 @@ For sample code in C++ and Python, see the Samples section.
 `color/image_color` ([sensor_msgs/Image](http://docs.ros.org/api/sensor_msgs/html/msg/Image.html))
 > RGB image. The image is encoded as "rgb8".
 
-`depth/points` ([sensor_msgs/PointCloud2](http://docs.ros.org/api/sensor_msgs/html/msg/PointCloud2.html))
-> Point cloud data. Each time a capture is invoked the resulting point cloud is published
-> on this topic. The included point fields are x, y, z (in meters), c (contrast value),
-> and r, g, b (colors). The output is in the camera's optical frame, where x is right, y is
-> down and z is forward.
-
 `depth/camera_info` ([sensor_msgs/CameraInfo](http://docs.ros.org/api/sensor_msgs/html/msg/CameraInfo.html))
 > Camera calibration and metadata.
 
 `depth/image_raw` ([sensor_msgs/Image](http://docs.ros.org/api/sensor_msgs/html/msg/Image.html))
 > Depth image. Each pixel contains the z-value (along the camera Z axis) in meters.
 > The image is encoded as 32-bit float. Pixels where z-value is missing are NaN.
+
+`depth/points` ([sensor_msgs/PointCloud2](http://docs.ros.org/api/sensor_msgs/html/msg/PointCloud2.html))
+> Point cloud data. Each time a capture is invoked the resulting point cloud is published
+> on this topic. The included point fields are x, y, z (in meters), c (contrast value),
+> and r, g, b (colors). The output is in the camera's optical frame, where x is right, y is
+> down and z is forward.
 
 ## Configuration
 
@@ -178,16 +178,13 @@ rosrun rqt_reconfigure rqt_reconfigure
 ```
 
 The capture settings available in the `zivid_camera` node matches the settings in the Zivid API.
-To become more familiar with the available settings in Zivid, run Zivid Studio or see
-the [API reference](http://www.zivid.com/software/api-documentation) of the `Settings` class.
+To become more familiar with the available settings and what they do, see the
+[API reference](http://www.zivid.com/software/api-documentation) for the `Settings` class or use
+Zivid Studio.
+
 Note that the available settings will depend on which version of Zivid Core you are using.
 
-The `zivid_camera` node supports both single-capture and HDR-capture. HDR-capture works by taking
-several captures with different settings (for example different exposure time) and combining the
-captures into one high-quality point cloud. For more information about HDR capture, visit our
-[knowledge base](https://help.zivid.com) and search for HDR.
-
-The available capture settings are split into subtrees:
+The available capture settings are organized into a hierarchy:
 
 ```
 /capture_frame
@@ -202,17 +199,11 @@ The available capture settings are split into subtrees:
     ...
 ```
 
-`capture_general` contains common settings for all frames (as of Core version 1.3 this is all the
-filters and color balance). `frame_settings/frame_<n>/` contains settings for an individual
-frame. By default `<n>` can be 0 to 9 for a total of 10 configured frames. The total number of frames
-can be configured using the launch parameter `num_capture_frames` (see below).
+The `zivid_camera` node supports both single-capture and HDR-capture. HDR-capture works by taking
+several individual captures (called frames here) with different settings (for example different exposure time)
+and combining the captures into one high-quality point cloud.
 
-`frame_settings/frame_<n>/enabled` controls if the frame `<n>` is enabled. When the
-`capture/` service is invoked, if one frame is enabled, the camera will perform a
-single-capture. If more than one frame is enabled, the camera will perform an HDR capture.
-
-By default all frames are disabled. In order to capture a point cloud at least one frame needs to be
-enabled.
+For more information about HDR capture, visit our [knowledge base](https://zivid.atlassian.net/wiki/spaces/ZividKB/pages/428143/HDR+Imaging+for+Challenging+Objects).
 
 Note that the min, max and default value of the dynamic_reconfigure parameters can change dependent on
 what Zivid camera model you are using. Therefore you should not use the `__getMin()__`, `__getMax()__` and
@@ -220,20 +211,17 @@ what Zivid camera model you are using. Therefore you should not use the `__getMi
 and `zivid_camera::CaptureFrameConfig`). Instead you should query the server for the default values.
 See the sample code for how to do this.
 
-### List of dynamic reconfigure parameters
+### Frame settings
 
-#### General settings
-
-`capture_general/*`
-> The settings here applies to all the frames. Contains filters and color balance.
-
-TODO: extend documentation.
-
-#### Per-frame settings
+`frame_settings/frame_<n>/` contains settings for an individual frame. By default `<n>` can be 0 to 9
+for a total of 10 configured frames. The total number of frames can be configured using the launch
+parameter `num_capture_frames` (see below).
 
 `frame_settings/frame_<n>/enabled` (bool)
-> Controls if the frame `<n>` is enabled. When the frame is enabled it will be included
-> in captures. The default value is false.
+> Controls if frame `<n>` is enabled. All frames that are enabled are included when the `capture/` service is invoked.
+> If only one frame is enabled the `capture/` service performs a single-capture. If more than one frame is enabled
+> the `capture/` service will perform an HDR-capture. By default enabled is false. In order to capture a point cloud
+> at least one frame needs to be enabled.
 
 `frame_settings/frame_<n>/bidirectional` (bool)
 > Corresponds to the API setting [Zivid::Settings::Bidirectional](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Bidirectional.html).
@@ -249,6 +237,45 @@ TODO: extend documentation.
 
 `frame_settings/frame_<n>/iris` (int)
 > Corresponds to the API setting [Zivid::Settings::Iris](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Iris.html).
+
+### General settings
+
+`capture_general` contains settings that apply to all frames in a capture.
+
+
+| Name                              | Data type           |  Corresponding Zivid API Setting             |
+|-----------------------------------|---------------------|----------------------------------------------|
+| `capture_general/blue_balance`    |  double             | [Zivid::Settings::BlueBalance](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1BlueBalance.html) |
+| `capture_general/filters_contrast_enabled`    |  bool             | [Zivid::Settings::Filters::Contrast::Enabled](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Contrast_1_1Enabled.html) |
+
+
+
+`capture_general/filters_contrast_enabled` (bool)
+> Corresponds to the API setting [Zivid::Settings::Filters::Contrast::Enabled](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Contrast_1_1Enabled.html).
+
+`capture_general/filters_contrast_threshold` (double)
+> Corresponds to the API setting [Zivid::Settings::Filters::Contrast::Threshold](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Contrast_1_1Threshold.html).
+
+`capture_general/filters_gaussian_enabled` (bool)
+> Corresponds to the API setting [Zivid::Settings::Filters::Gaussian::Enabled](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Gaussian_1_1Enabled.html).
+
+`capture_general/filters_gaussian_sigma` (double)
+> Corresponds to the API setting [Zivid::Settings::Filters::Gaussian::Sigma](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Gaussian_1_1Sigma.html).
+
+`capture_general/filters_outlier_enabled` (bool)
+> Corresponds to the API setting [Zivid::Settings::Filters::Outlier::Enabled](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Outlier_1_1Enabled.html).
+
+`capture_general/filters_outlier_threshold` (double)
+> Corresponds to the API setting [Zivid::Settings::Filters::Outlier::Threshold](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Outlier_1_1Threshold.html).
+
+`capture_general/filters_reflection_enabled` (bool)
+> Corresponds to the API setting [Zivid::Settings::Filters::Reflection::Enabled](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Reflection_1_1Enabled.html).
+
+`capture_general/filters_saturated_enabled` (bool)
+> Corresponds to the API setting [Zivid::Settings::Filters::Saturated::Enabled](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Saturated_1_1Enabled.html).
+
+`capture_general/red_balance` (double)
+> Corresponds to the API setting [Zivid::Settings::RedBalance](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1RedBalance.html).
 
 ## Launch Parameters
 
