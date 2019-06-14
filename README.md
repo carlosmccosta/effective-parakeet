@@ -245,37 +245,17 @@ parameter `num_capture_frames` (see below).
 
 | Name                              | Data type           |  Corresponding Zivid API Setting             |
 |-----------------------------------|---------------------|----------------------------------------------|
-| `capture_general/blue_balance`    |  double             | [Zivid::Settings::BlueBalance](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1BlueBalance.html) |
+| `capture_general/blue_balance`                |  double             | [Zivid::Settings::BlueBalance](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1BlueBalance.html) |
 | `capture_general/filters_contrast_enabled`    |  bool             | [Zivid::Settings::Filters::Contrast::Enabled](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Contrast_1_1Enabled.html) |
+| `capture_general/filters_contrast_threshold`  |  double             | [Zivid::Settings::Filters::Contrast::Threshold](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Contrast_1_1Threshold.html) |
+| `capture_general/filters_gaussian_enabled`    |  bool             | [Zivid::Settings::Filters::Gaussian::Enabled](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Gaussian_1_1Enabled.html) |
+| `capture_general/filters_gaussian_sigma`      |  double             | [Zivid::Settings::Filters::Gaussian::Sigma](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Gaussian_1_1Sigma.html) |
+| `capture_general/filters_outlier_enabled`     |  bool             | [Zivid::Settings::Filters::Outlier::Enabled](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Outlier_1_1Enabled.html) |
+| `capture_general/filters_outlier_threshold`   |  double             | [Zivid::Settings::Filters::Outlier::Threshold](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Outlier_1_1Threshold.html). |
+| `capture_general/filters_reflection_enabled`  |  bool             | [Zivid::Settings::Filters::Reflection::Enabled](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Reflection_1_1Enabled.html) |
+| `capture_general/filters_saturated_enabled`   |  bool             | [Zivid::Settings::Filters::Saturated::Enabled](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Saturated_1_1Enabled.html) |
+| `capture_general/red_balance`                 |  double             | [Zivid::Settings::RedBalance](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1RedBalance.html) |
 
-
-
-`capture_general/filters_contrast_enabled` (bool)
-> Corresponds to the API setting [Zivid::Settings::Filters::Contrast::Enabled](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Contrast_1_1Enabled.html).
-
-`capture_general/filters_contrast_threshold` (double)
-> Corresponds to the API setting [Zivid::Settings::Filters::Contrast::Threshold](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Contrast_1_1Threshold.html).
-
-`capture_general/filters_gaussian_enabled` (bool)
-> Corresponds to the API setting [Zivid::Settings::Filters::Gaussian::Enabled](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Gaussian_1_1Enabled.html).
-
-`capture_general/filters_gaussian_sigma` (double)
-> Corresponds to the API setting [Zivid::Settings::Filters::Gaussian::Sigma](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Gaussian_1_1Sigma.html).
-
-`capture_general/filters_outlier_enabled` (bool)
-> Corresponds to the API setting [Zivid::Settings::Filters::Outlier::Enabled](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Outlier_1_1Enabled.html).
-
-`capture_general/filters_outlier_threshold` (double)
-> Corresponds to the API setting [Zivid::Settings::Filters::Outlier::Threshold](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Outlier_1_1Threshold.html).
-
-`capture_general/filters_reflection_enabled` (bool)
-> Corresponds to the API setting [Zivid::Settings::Filters::Reflection::Enabled](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Reflection_1_1Enabled.html).
-
-`capture_general/filters_saturated_enabled` (bool)
-> Corresponds to the API setting [Zivid::Settings::Filters::Saturated::Enabled](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Saturated_1_1Enabled.html).
-
-`capture_general/red_balance` (double)
-> Corresponds to the API setting [Zivid::Settings::RedBalance](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1RedBalance.html).
 
 ## Launch Parameters
 
