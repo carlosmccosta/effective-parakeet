@@ -217,45 +217,37 @@ See the sample code for how to do this.
 for a total of 10 configured frames. The total number of frames can be configured using the launch
 parameter `num_capture_frames` (see below).
 
-`frame_settings/frame_<n>/enabled` (bool)
-> Controls if frame `<n>` is enabled. All frames that are enabled are included when the `capture/` service is invoked.
-> If only one frame is enabled the `capture/` service performs a single-capture. If more than one frame is enabled
-> the `capture/` service will perform an HDR-capture. By default enabled is false. In order to capture a point cloud
-> at least one frame needs to be enabled.
+`frame_settings/frame_<n>/enabled` controls if frame `<n>` will be included when the `capture/` service is
+invoked. If only one frame is enabled the `capture/` service performs a single-capture. If more than
+one frame is enabled the `capture/` service will perform an HDR-capture. By default enabled is false.
+In order to capture a point cloud at least one frame needs to be enabled.
 
-`frame_settings/frame_<n>/bidirectional` (bool)
-> Corresponds to the API setting [Zivid::Settings::Bidirectional](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Bidirectional.html).
+| Name                                          | Type   |  Zivid API Setting             |   Note   |
+|-----------------------------------------------|--------|----------------------------------------------|----------|
+| `frame_settings/frame_<n>/bidirectional`      | bool   | [Zivid::Settings::Bidirectional](https://www.zivid.com/software/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Bidirectional.html)
+| `frame_settings/frame_<n>/brightness`         | double | [Zivid::Settings::Brightness](https://www.zivid.com/software/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Brightness.html)
+| `frame_settings/frame_<n>/enabled`            | bool |  |
+| `frame_settings/frame_<n>/exposure_time`      | double | [Zivid::Settings::ExposureTime](https://www.zivid.com/software/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1ExposureTime.html) | Specified in seconds
+| `frame_settings/frame_<n>/gain`               | double | [Zivid::Settings::Gain](https://www.zivid.com/software/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Gain.html)
+| `frame_settings/frame_<n>/iris`               | int    | [Zivid::Settings::Iris](https://www.zivid.com/software/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Iris.html)
 
-`frame_settings/frame_<n>/brightness` (double)
-> Corresponds to the API setting [Zivid::Settings::Brightness](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Brightness.html).
 
-`frame_settings/frame_<n>/exposure_time` (double)
-> Corresponds to the API setting [Zivid::Settings::ExposureTime](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1ExposureTime.html). Per ROS convention it is specified in seconds instead of milliseconds.
-
-`frame_settings/frame_<n>/gain` (double)
-> Corresponds to the API setting [Zivid::Settings::Gain](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Gain.html).
-
-`frame_settings/frame_<n>/iris` (int)
-> Corresponds to the API setting [Zivid::Settings::Iris](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Iris.html).
-
-### General settings
+### General capture settings
 
 `capture_general` contains settings that apply to all frames in a capture.
 
-
-| Name                              | Data type           |  Corresponding Zivid API Setting             |
-|-----------------------------------|---------------------|----------------------------------------------|
-| `capture_general/blue_balance`                |  double             | [Zivid::Settings::BlueBalance](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1BlueBalance.html) |
-| `capture_general/filters_contrast_enabled`    |  bool             | [Zivid::Settings::Filters::Contrast::Enabled](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Contrast_1_1Enabled.html) |
-| `capture_general/filters_contrast_threshold`  |  double             | [Zivid::Settings::Filters::Contrast::Threshold](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Contrast_1_1Threshold.html) |
-| `capture_general/filters_gaussian_enabled`    |  bool             | [Zivid::Settings::Filters::Gaussian::Enabled](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Gaussian_1_1Enabled.html) |
-| `capture_general/filters_gaussian_sigma`      |  double             | [Zivid::Settings::Filters::Gaussian::Sigma](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Gaussian_1_1Sigma.html) |
-| `capture_general/filters_outlier_enabled`     |  bool             | [Zivid::Settings::Filters::Outlier::Enabled](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Outlier_1_1Enabled.html) |
-| `capture_general/filters_outlier_threshold`   |  double             | [Zivid::Settings::Filters::Outlier::Threshold](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Outlier_1_1Threshold.html). |
-| `capture_general/filters_reflection_enabled`  |  bool             | [Zivid::Settings::Filters::Reflection::Enabled](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Reflection_1_1Enabled.html) |
-| `capture_general/filters_saturated_enabled`   |  bool             | [Zivid::Settings::Filters::Saturated::Enabled](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Saturated_1_1Enabled.html) |
-| `capture_general/red_balance`                 |  double             | [Zivid::Settings::RedBalance](https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1RedBalance.html) |
-
+| Name                                          | Type   |  Zivid API Setting             |
+|-----------------------------------------------|--------|----------------------------------------------|
+| `capture_general/blue_balance`                | double | [Zivid::Settings::BlueBalance](https://www.zivid.com/software/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1BlueBalance.html)
+| `capture_general/filters_contrast_enabled`    | bool   | [Zivid::Settings::Filters::Contrast::Enabled](https://www.zivid.com/software/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Contrast_1_1Enabled.html)
+| `capture_general/filters_contrast_threshold`  | double | [Zivid::Settings::Filters::Contrast::Threshold](https://www.zivid.com/software/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Contrast_1_1Threshold.html)
+| `capture_general/filters_gaussian_enabled`    | bool   | [Zivid::Settings::Filters::Gaussian::Enabled](https://www.zivid.com/software/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Gaussian_1_1Enabled.html)
+| `capture_general/filters_gaussian_sigma`      | double | [Zivid::Settings::Filters::Gaussian::Sigma](https://www.zivid.com/software/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Gaussian_1_1Sigma.html)
+| `capture_general/filters_outlier_enabled`     | bool   | [Zivid::Settings::Filters::Outlier::Enabled](https://www.zivid.com/software/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Outlier_1_1Enabled.html)
+| `capture_general/filters_outlier_threshold`   | double | [Zivid::Settings::Filters::Outlier::Threshold](https://www.zivid.com/software/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Outlier_1_1Threshold.html)
+| `capture_general/filters_reflection_enabled`  | bool   | [Zivid::Settings::Filters::Reflection::Enabled](https://www.zivid.com/software/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Reflection_1_1Enabled.html)
+| `capture_general/filters_saturated_enabled`   | bool   | [Zivid::Settings::Filters::Saturated::Enabled](https://www.zivid.com/software/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Saturated_1_1Enabled.html)
+| `capture_general/red_balance`                 | double | [Zivid::Settings::RedBalance](https://www.zivid.com/software/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1RedBalance.html)
 
 ## Launch Parameters
 
