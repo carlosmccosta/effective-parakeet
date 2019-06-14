@@ -13,18 +13,19 @@ a node/nodelet in ROS. Read more about Zivid at [our website](https://www.zivid.
 
 ## Installation
 Follow this step-by-step guide to install the Zivid ROS driver on your system.
-This package supports Ubuntu 18.04 and ROS Melodic Morenia.
+This package supports Ubuntu 18.04 and Ubuntu 16.04.
 
 ### Prerequisites
 
 #### ROS
-Follow the [ROS installation wiki](http://wiki.ros.org/ROS/Installation) to install ROS Melodic.
+Follow the [ROS installation wiki](http://wiki.ros.org/ROS/Installation) to install ROS Melodic
+Morenia (for Ubuntu 18.04) or ROS Kinetic Kame (for Ubuntu 16.04).
 
 Also install catkin and git.
 
 ```
-sudo apt update
-sudo apt install python-catkin-tools git
+sudo apt-get update
+sudo apt-get install -y python-catkin-tools git
 ```
 
 #### OpenCL
@@ -33,23 +34,47 @@ Follow the guide at https://help.zivid.com to install OpenCL (search for Install
 
 #### Zivid Core Library
 Download and install the "Toshiba Teli driver" and "Zivid Core" debian packages from
-[our webpage](https://www.zivid.com/downloads). Version 1.3 or newer is required.
-
-Optionally install the "Zivid Studio" and "Zivid Tools" packages as well. They are not required by the ROS
+[our webpage](https://www.zivid.com/downloads). Version 1.3 or newer is required. Optionally
+install the "Zivid Studio" and "Zivid Tools" packages as well. They are not required by the ROS
 driver but can be useful for testing that your system has been setup correctly and that
 the camera is detected.
 
+#### C++ compiler
+
+A C++17 compiler is required.
+
+Ubuntu 18.04:
+```
+sudo apt-get install -y g++
+```
+
+Ubuntu 16.04:
+```
+sudo apt-get install -y software-properties-common
+sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+sudo apt-get update
+sudo apt-get install -y g++-8
+```
+
 #### Create catkin workspace
 
-If you have not created a catkin workspace, this needs to be done as well.
+If you have not created a catkin workspace, this needs to be done first.
+
+Ubuntu 18.04:
 ```
 source /opt/ros/melodic/setup.bash
 mkdir -p ~/catkin_ws/src
-cd ~/catkin_ws
-catkin build
+cd ~/catkin_ws && catkin build
 ```
 
-### Building Zivid ROS driver
+Ubuntu 16.04:
+```
+source /opt/ros/kinetic/setup.bash
+mkdir -p ~/catkin_ws/src
+cd ~/catkin_ws && catkin build
+```
+
+### Downloading and building Zivid ROS driver
 
 Clone the Zivid ROS project into the ~/catkin_ws/src directory.
 ```
@@ -60,15 +85,21 @@ git clone https://github.com/nedrebo/effective-parakeet.git
 Install dependencies.
 ```
 cd ~/catkin_ws
-sudo apt update
+sudo apt-get update
 rosdep update
 rosdep install --from-paths src --ignore-src -r -y
 ```
 
 Finally, build the `zivid_camera` and `zivid_samples` packages.
 
+Ubuntu 18.04:
 ```
 catkin build
+```
+
+Ubuntu 16.04:
+```
+catkin build -DCMAKE_CXX_COMPILER=/usr/bin/g++-8
 ```
 
 ## Getting started

@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.5)
 project(zivid_camera LANGUAGES CXX)
-set(CMAKE_CXX_STANDARD 17)
+
+if(${CMAKE_VERSION} VERSION_LESS "3.8.0")
+  add_compile_options(-std=c++17)
+else()
+  set(CMAKE_CXX_STANDARD 17)
+endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
@@ -86,6 +91,16 @@ catkin_package(
 ## Build ##
 ###########
 
+function(set_compile_options target)
+  if($ENV{ROS_DISTRO} STREQUAL "kinetic")
+    # Kinetic (16.04) unfortunately has some headers that fail to  compile
+    # with extended warnings.
+    target_compile_options(${target} PRIVATE -Werror)
+  else()
+    target_compile_options(${target} PRIVATE -Wall -Wextra -Werror -pedantic)
+  endif()
+endfunction()
+
 include_directories(
   include
   ${CMAKE_CURRENT_BINARY_DIR}/generated_headers/
@@ -93,7 +108,7 @@ include_directories(
 )
 
 add_library(${LIBRARY_NAME} src/zivid_camera.cpp)
-target_compile_options(${LIBRARY_NAME} PRIVATE -Wall -Wextra -pedantic -Werror)
+set_compile_options(${LIBRARY_NAME})
 target_compile_definitions(${LIBRARY_NAME} PRIVATE "ZIVID_ROS_DRIVER_VERSION=\"${${PROJECT_NAME}_VERSION}\"")
 target_link_libraries(${LIBRARY_NAME} PUBLIC ${catkin_LIBRARIES})
 target_link_libraries(${LIBRARY_NAME} PRIVATE Zivid::Core)
@@ -101,14 +116,14 @@ add_dependencies(${LIBRARY_NAME} ${PROJECT_NAME}_gencfg ${catkin_EXPORTED_TARGET
 
 set(NODE_NAME ${PROJECT_NAME}_node)
 add_executable(${NODE_NAME} src/node.cpp)
-target_compile_options(${NODE_NAME} PRIVATE -Wall -Wextra -pedantic -Werror)
+set_compile_options(${NODE_NAME})
 target_link_libraries(${NODE_NAME} ${LIBRARY_NAME} ${catkin_LIBRARIES})
 add_dependencies(${NODE_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} ${LIBRARY_NAME} )
 
 set(NODELET_NAME ${PROJECT_NAME}_nodelet)
 add_library(${NODELET_NAME} src/nodelet.cpp)
 target_link_libraries(${NODELET_NAME} ${LIBRARY_NAME} ${catkin_LIBRARIES})
-target_compile_options(${NODELET_NAME} PRIVATE -Wall -Wextra -pedantic -Werror)
+set_compile_options(${NODELET_NAME})
 add_dependencies(${NODELET_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} ${LIBRARY_NAME} )
 
 #############
