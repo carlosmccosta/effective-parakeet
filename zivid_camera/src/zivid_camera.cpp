@@ -73,7 +73,7 @@ zivid_camera::ZividCamera::ZividCamera(ros::NodeHandle& nh)
   {
     // Require the user to specify the namespace that this node will run in.
     // See REP-135 http://www.ros.org/reps/rep-0135.html
-    throw std::runtime_error("Zivid driver started in the global namespace ('/')! This is unsupported. "
+    throw std::runtime_error("Zivid ROS driver started in the global namespace ('/')! This is unsupported. "
                              "Please specify namespace, fex. using the ROS_NAMESPACE environment variable.");
   }
 
@@ -81,8 +81,8 @@ zivid_camera::ZividCamera::ZividCamera(ros::NodeHandle& nh)
   ROS_INFO("Running with Zivid API version %s", Zivid::Version::libraryVersion().c_str());
   if (Zivid::Version::libraryVersion() != ZIVID_VERSION)
   {
-    throw std::runtime_error("Zivid library mismatch! The running Zivid version does not match the "
-                             "version this library was built towards. Hint: Try to clean and re-build your project "
+    throw std::runtime_error("Zivid library mismatch! The running Zivid Core version does not match the "
+                             "version this ROS driver was built towards. Hint: Try to clean and re-build your project "
                              "from scratch.");
   }
 

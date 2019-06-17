@@ -4,16 +4,15 @@
 
 THIS DRIVER IS WORK IN PROGRESS. IT WILL CHANGE BEFORE FINAL RELEASE.
 
-This is the official ROS package for Zivid 3D cameras. This enables usage of Zivid cameras as
-a node/nodelet in ROS. Read more about Zivid at [our website](https://www.zivid.com/).
+This is the official ROS driver for Zivid 3D cameras. Read more about Zivid at [our website](https://www.zivid.com/).
 
 <p align="center">
     <img src="https://www.zivid.com/software/zivid-ros/ros_zivid_camera.png" width="600" height="273">
 </p>
 
 ## Installation
-Follow this step-by-step guide to install the Zivid ROS driver on your system.
-This package supports Ubuntu 16.04 and 18.04.
+Follow this step-by-step guide to install the Zivid ROS driver on your system. This driver supports
+Ubuntu 16.04 with ROS Kinetic and Ubuntu 18.04 with ROS Melodic.
 
 ### Prerequisites
 
@@ -29,8 +28,8 @@ sudo apt-get install -y python-catkin-tools git
 ```
 
 #### OpenCL
-An OpenCL 1.2 compatible GPU and OpenCL drivers are required by the Zivid Core library.
-Follow the [guide in our knowledge base](https://zivid.atlassian.net/wiki/spaces/ZividKB/pages/426519/Install+OpenCL+drivers+on+Ubuntu) to install OpenCL.
+An OpenCL 1.2 compatible GPU and OpenCL driver is required by the Zivid Core library.
+Follow the [guide in our knowledge base](https://zivid.atlassian.net/wiki/spaces/ZividKB/pages/426519/Install+OpenCL+drivers+on+Ubuntu) to install OpenCL for your system.
 
 #### Zivid Core Library
 Download and install the "Toshiba Teli driver" and "Zivid Core" debian packages from
@@ -104,7 +103,7 @@ catkin build
 
 ## Getting started
 
-Connect the Zivid Camera to your USB3 port on your PC. You can use the ZividListCameras tool
+Connect the Zivid camera to your USB3 port on your PC. You can use the ZividListCameras tool
 available in the zivid-tools package to confirm that your system has been configured correctly, and
 that the camera is discovered by your PC. You can also open Zivid Studio and connect to the camera.
 Close Zivid Studio before continuing with the rest of this guide. If the camera is not found, visit
@@ -180,7 +179,7 @@ For sample code in C++ and Python, see the Samples section.
 `camera_info/serial_number` ([zivid_camera/CameraInfoSerialNumber](./zivid_camera/srv/CameraInfoSerialNumber.srv))
 > Returns the camera's serial number.
 
-## Topics
+## Published Topics
 `color/camera_info` ([sensor_msgs/CameraInfo](http://docs.ros.org/api/sensor_msgs/html/msg/CameraInfo.html))
 > Camera calibration and metadata.
 
