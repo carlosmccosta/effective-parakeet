@@ -27,7 +27,7 @@ namespace zivid_camera
 class ZividCamera
 {
 public:
-  ZividCamera(ros::NodeHandle& nh);
+  ZividCamera(ros::NodeHandle& nh, ros::NodeHandle& priv);
   ~ZividCamera();
 
 private:

@@ -14,7 +14,7 @@ private:
   {
     try
     {
-      camera = std::make_unique<zivid_camera::ZividCamera>(getNodeHandle());
+      camera = std::make_unique<zivid_camera::ZividCamera>(getNodeHandle(), getPrivateNodeHandle());
     }
     catch (const std::exception& e)
     {

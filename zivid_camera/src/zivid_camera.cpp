@@ -59,9 +59,9 @@ ros::ServiceServer advertiseService(ros::NodeHandle& nh, const std::string& name
 
 }  // namespace
 
-zivid_camera::ZividCamera::ZividCamera(ros::NodeHandle& nh)
+zivid_camera::ZividCamera::ZividCamera(ros::NodeHandle& nh, ros::NodeHandle& priv)
   : nh_(nh)
-  , priv_("~")
+  , priv_(priv)
   , current_capture_general_config_(decltype(current_capture_general_config_)::__getDefault__())
   , image_transport_(nh_)
   , header_seq_(0)
