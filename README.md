@@ -1,4 +1,4 @@
-# ROS driver for Zivid
+# Zivid ROS driver
 
 [![Build Status](https://travis-ci.org/nedrebo/effective-parakeet.svg?branch=master)](https://travis-ci.org/nedrebo/effective-parakeet)
 
@@ -17,8 +17,8 @@ Ubuntu 16.04 with ROS Kinetic and Ubuntu 18.04 with ROS Melodic.
 ### Prerequisites
 
 #### ROS
-Follow the [ROS installation wiki](http://wiki.ros.org/ROS/Installation) to install ROS Kinetic Kame (for Ubuntu 16.04)
-or ROS Melodic Morenia (for Ubuntu 18.04).
+Follow the [ROS installation wiki](http://wiki.ros.org/ROS/Installation) to install ROS Kinetic (for Ubuntu 16.04)
+or ROS Melodic (for Ubuntu 18.04).
 
 Also install catkin and git.
 
