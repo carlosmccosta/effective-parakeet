@@ -139,7 +139,8 @@ public:
   {
     const auto setting_name = convertSettingsPathToConfigPath(s.path);
     const auto level = "0";
-    const auto description = "";
+    // Newlines must be converted to \\n so that the auto-generated files end up being correct
+    const auto description = boost::replace_all_copy<std::string>(s.description, "\n", R"(\\n)");
     const auto type_name = rosTypeName<decltype(convertValueToRosValue(s.value()))>();
     const auto default_value = valueTypeToRosTypeString(s.value());
 
