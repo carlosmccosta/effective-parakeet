@@ -19,6 +19,7 @@ private:
     catch (const std::exception& e)
     {
       NODELET_ERROR_STREAM("Failed to initialize camera driver. Exception: \"" << e.what() << "\"");
+      throw;
     }
   };
 
