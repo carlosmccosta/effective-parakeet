@@ -1,9 +1,10 @@
 #!/bin/bash
+echo Start ["$(basename $0)"]
+
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )" || exit $?
 ROOT_DIR=$(realpath "$SCRIPT_DIR/..") || exit $?
 
 echo "Creating catkin workspace"
-source /opt/ros/melodic/setup.bash || exit $?
 mkdir -p ~/catkin_ws/src || exit $?
 cd ~/catkin_ws || exit $?
 catkin build || exit $?
@@ -21,21 +22,14 @@ echo "Installing dependencies"
 rosdep update && rosdep install --from-paths src --ignore-src -r -y || exit $?
 
 echo "Building zivid_ros"
-catkin build || exit $?
-
-echo "Installing Zivid API config file"
-install -D "$SCRIPT_DIR"/ZividAPIConfigCPU.yml "$HOME"/.config/Zivid/API/Config.yml || exit $?
-
-echo "Download and install zivid sample data (file camera)"
-wget -q https://www.zivid.com/software/ZividSampleData.zip || exit $?
-mkdir -p /usr/share/Zivid/data/ || exit $?
-unzip ./ZividSampleData.zip -d /usr/share/Zivid/data/ || exit $?
-rm ./ZividSampleData.zip || exit $?
-
-echo "Running tests"
-catkin run_tests || exit $?
-
-echo "Check for test errors"
-catkin_test_results || exit $?
+UBUNTU_VERSION="$(lsb_release -rs)" || exit $?
+if [[ "$UBUNTU_VERSION" == "16.04" ]]; then
+    catkin build -DCMAKE_CXX_COMPILER=/usr/bin/g++-8 || exit $?
+elif [[ "$UBUNTU_VERSION" == "18.04" ]]; then
+    catkin build || exit $?
+else
+    echo "Unhanded OS $UBUNTU_VERSION"
+    exit 1
+fi
 
 echo Success! ["$(basename $0)"]

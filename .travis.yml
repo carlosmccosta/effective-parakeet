@@ -4,9 +4,10 @@ services:
   - docker
 
 env:
+  - OS=ros:kinetic-ros-base-xenial
   - OS=ros:melodic-ros-base-bionic
 
 before_install:
   - docker pull $OS
 
-script: ./continuous-integration/ci_test.sh
+script: ./continuous-integration/run_ci_test_in_docker.sh

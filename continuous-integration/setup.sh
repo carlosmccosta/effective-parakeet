@@ -1,6 +1,9 @@
 #!/bin/bash
 
+echo Start ["$(basename $0)"]
+
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+UBUNTU_VERSION="$(lsb_release -rs)" || exit $?
 
 export DEBIAN_FRONTEND=noninteractive
 
@@ -21,8 +24,6 @@ apt-yes install \
     unzip \
     || exit $?
 
-pip3 install -r $SCRIPT_DIR/requirements.txt || exit $?
-
 function install_opencl_cpu_runtime {
     TMP_DIR=$(mktemp --tmpdir --directory zivid-setup-opencl-cpu-XXXX) || exit $?
     pushd $TMP_DIR || exit $?
@@ -41,12 +42,33 @@ function install_www_deb {
     TMP_DIR=$(mktemp --tmpdir --directory install_www_deb-XXXX) || exit $?
     pushd $TMP_DIR || exit $?
     wget -q "$@" || exit $?
+    echo "Installing Zivid debian package $1"
     apt-yes install --fix-broken ./*deb || exit $?
     popd || exit $?
     rm -r $TMP_DIR || exit $?
 }
 
-install_www_deb https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/u18/telicam-sdk_2.0.0.1-1_amd64.deb || exit $?
-install_www_deb https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/u18/zivid_1.3.0+bb9ee328-10_amd64.deb || exit $?
+if [[ "$UBUNTU_VERSION" == "16.04" ]]; then
+
+    echo "Installing gcc-8"
+    apt-yes install software-properties-common
+    add-apt-repository -y ppa:ubuntu-toolchain-r/test
+    apt-yes update
+    apt-yes install g++-8
+
+    install_www_deb https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/u16/telicam-sdk_2.0.0.1-1_amd64.deb || exit $?
+    install_www_deb https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/u16/zivid_1.3.0+bb9ee328-10_amd64.deb || exit $?
+
+elif [[ "$UBUNTU_VERSION" == "18.04" ]]; then
+
+    pip3 install -r $SCRIPT_DIR/requirements-u18.txt || exit $?
+
+    install_www_deb https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/u18/telicam-sdk_2.0.0.1-1_amd64.deb || exit $?
+    install_www_deb https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/u18/zivid_1.3.0+bb9ee328-10_amd64.deb || exit $?
+
+else
+    echo "Unhandled OS $UBUNTU_VERSION"
+    exit 1
+fi
 
 echo Success! ["$(basename $0)"]

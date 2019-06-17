@@ -13,13 +13,13 @@ a node/nodelet in ROS. Read more about Zivid at [our website](https://www.zivid.
 
 ## Installation
 Follow this step-by-step guide to install the Zivid ROS driver on your system.
-This package supports Ubuntu 18.04 and Ubuntu 16.04.
+This package supports Ubuntu 16.04 and 18.04.
 
 ### Prerequisites
 
 #### ROS
-Follow the [ROS installation wiki](http://wiki.ros.org/ROS/Installation) to install ROS Melodic
-Morenia (for Ubuntu 18.04) or ROS Kinetic Kame (for Ubuntu 16.04).
+Follow the [ROS installation wiki](http://wiki.ros.org/ROS/Installation) to install ROS Kinetic Kame (for Ubuntu 16.04)
+or ROS Melodic Morenia (for Ubuntu 18.04).
 
 Also install catkin and git.
 
@@ -30,23 +30,18 @@ sudo apt-get install -y python-catkin-tools git
 
 #### OpenCL
 An OpenCL 1.2 compatible GPU and OpenCL drivers are required by the Zivid Core library.
-Follow the guide at https://help.zivid.com to install OpenCL (search for Install OpenCL).
+Follow the [guide in our knowledge base](https://zivid.atlassian.net/wiki/spaces/ZividKB/pages/426519/Install+OpenCL+drivers+on+Ubuntu) to install OpenCL.
 
 #### Zivid Core Library
 Download and install the "Toshiba Teli driver" and "Zivid Core" debian packages from
-[our webpage](https://www.zivid.com/downloads). Version 1.3 or newer is required. Optionally
-install the "Zivid Studio" and "Zivid Tools" packages as well. They are not required by the ROS
-driver but can be useful for testing that your system has been setup correctly and that
+[our webpage](https://www.zivid.com/downloads). Zivid Core version 1.3 or newer is required.
+Optionally install the "Zivid Studio" and "Zivid Tools" packages as well. They are not required by
+the ROS driver but can be useful for testing that your system has been setup correctly and that
 the camera is detected.
 
 #### C++ compiler
 
 A C++17 compiler is required.
-
-Ubuntu 18.04:
-```
-sudo apt-get install -y g++
-```
 
 Ubuntu 16.04:
 ```
@@ -56,20 +51,25 @@ sudo apt-get update
 sudo apt-get install -y g++-8
 ```
 
+Ubuntu 18.04:
+```
+sudo apt-get install -y g++
+```
+
 #### Create catkin workspace
 
 If you have not created a catkin workspace, this needs to be done first.
 
-Ubuntu 18.04:
+Ubuntu 16.04:
 ```
-source /opt/ros/melodic/setup.bash
+source /opt/ros/kinetic/setup.bash
 mkdir -p ~/catkin_ws/src
 cd ~/catkin_ws && catkin build
 ```
 
-Ubuntu 16.04:
+Ubuntu 18.04:
 ```
-source /opt/ros/kinetic/setup.bash
+source /opt/ros/melodic/setup.bash
 mkdir -p ~/catkin_ws/src
 cd ~/catkin_ws && catkin build
 ```
@@ -92,14 +92,14 @@ rosdep install --from-paths src --ignore-src -r -y
 
 Finally, build the `zivid_camera` and `zivid_samples` packages.
 
-Ubuntu 18.04:
-```
-catkin build
-```
-
 Ubuntu 16.04:
 ```
 catkin build -DCMAKE_CXX_COMPILER=/usr/bin/g++-8
+```
+
+Ubuntu 18.04:
+```
+catkin build
 ```
 
 ## Getting started
@@ -135,7 +135,8 @@ rosrun zivid_samples zivid_samples_capture
 ```
 
 The `zivid_samples_capture` node will first configure the capture settings of the camera and then
-capture repeatedly. You can visualize the point cloud, color image and depth image using [rviz](https://wiki.ros.org/rviz).
+capture repeatedly. You can visualize the point cloud, color image and depth image using
+[rviz](https://wiki.ros.org/rviz).
 
 ```
 cd ~/catkin_ws && source devel/setup.bash
@@ -231,7 +232,7 @@ The available capture settings are organized into a hierarchy:
 ```
 
 The `zivid_camera` node supports both single-capture and HDR-capture. HDR-capture works by taking
-several individual captures (called frames here) with different settings (for example different exposure time)
+several individual captures (called frames) with different settings (for example different exposure time)
 and combining the captures into one high-quality point cloud.
 
 For more information about HDR capture, visit our [knowledge base](https://zivid.atlassian.net/wiki/spaces/ZividKB/pages/428143/HDR+Imaging+for+Challenging+Objects).
@@ -246,7 +247,7 @@ See the sample code for how to do this.
 
 `frame_settings/frame_<n>/` contains settings for an individual frame. By default `<n>` can be 0 to 9
 for a total of 10 configured frames. The total number of frames can be configured using the launch
-parameter `num_capture_frames` (see below).
+parameter `num_capture_frames` (see section Launch Parameters below).
 
 `frame_settings/frame_<n>/enabled` controls if frame `<n>` will be included when the `capture/` service is
 invoked. If only one frame is enabled the `capture/` service performs a single-capture. If more than
@@ -325,18 +326,18 @@ cd ~/catkin_ws && source devel/setup.bash
 rosrun zivid_samples sample_capture.py
 ```
 
-## Nodelet
+## Frequently Asked Questions
 
-zivid_camera can also be launched as a [nodelet](http://wiki.ros.org/nodelet), for example:
+### How to run zivid_camera as a nodelet
 
 ```
 ROS_NAMESPACE=zivid_camera rosrun nodelet nodelet standalone zivid_camera/nodelet
 ```
 
-## Using multiple cameras
+### How to use multiple cameras
 
 You can use multiple Zivid cameras simultaneously by starting one node per camera and specifying
-unique namespaces:
+unique namespaces per node:
 
 ```
 ROS_NAMESPACE=camera1 rosrun zivid_camera zivid_camera_node
@@ -351,7 +352,28 @@ you first start the first node, wait for it to be ready (for example, by waiting
 service to be advertised and available), then start the second node. This avoids any race conditions
 where both nodes may try to connect to the same camera at the same time.
 
-## How to enable debug logging
+### How to run the unit and module tests
+
+This project comes with a set of unit and module tests to verify the provided functionality. To run
+the tests locally, first download and install the file camera used for testing:
+```
+wget -q https://www.zivid.com/software/ZividSampleData.zip
+unzip ./ZividSampleData.zip
+rm ./ZividSampleData.zip
+sudo mkdir -p /usr/share/Zivid/data/
+sudo cp ./MiscObjects.zdf /usr/share/Zivid/data/
+rm ./MiscObjects.zdf
+```
+
+Then run the tests:
+```
+cd ~/catkin_ws && source devel/setup.bash
+catkin run_tests && catkin_test_results
+```
+
+The tests can also be run via docker. See the [Travis configuration file](./.travis.yml) for details.
+
+### How to enable debug logging
 
 The node logs extra information at log level debug, including the settings used when capturing.
 Enable debug logging to troubleshoot issues.
@@ -364,35 +386,6 @@ For example, if ROS_NAMESPACE=zivid_camera,
 
 ```
 rosconsole set /zivid_camera/zivid_camera ros.zivid_camera debug
-```
-
-## Run unit & module tests
-
-This project comes with a set of unit and module tests to verify the provided functionality.
-The tests can be run via docker and locally.
-
-### Run tests via docker
-```
-cd ~/catkin_ws/src/zivid_ros/
-OS=ros:melodic-ros-base-bionic ./continuous-integration/ci_test.sh
-```
-
-### Run tests locally
-
-First download and install the file camera used for testing.
-```
-wget -q https://www.zivid.com/software/ZividSampleData.zip
-unzip ./ZividSampleData.zip
-rm ./ZividSampleData.zip
-sudo mkdir -p /usr/share/Zivid/data/
-sudo cp ./MiscObjects.zdf /usr/share/Zivid/data/
-rm ./MiscObjects.zdf
-```
-
-Then run the tests
-```
-cd ~/catkin_ws && source devel/setup.bash
-catkin run_tests && catkin_test_results
 ```
 
 ## Feedback

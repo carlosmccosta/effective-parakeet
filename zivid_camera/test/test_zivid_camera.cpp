@@ -201,9 +201,9 @@ TEST_F(ZividNodeTest, testCaptureCameraInfo)
   ASSERT_EQ(color_camera_info_sub.numMessages(), 1);
   ASSERT_EQ(depth_camera_info_sub.numMessages(), 1);
 
-  ASSERT_TRUE(color_camera_info);
+  ASSERT_TRUE(color_camera_info.has_value());
   assert_camera_info_for_file_camera(*color_camera_info);
-  ASSERT_TRUE(depth_camera_info);
+  ASSERT_TRUE(depth_camera_info.has_value());
   assert_camera_info_for_file_camera(*depth_camera_info);
 }
 
