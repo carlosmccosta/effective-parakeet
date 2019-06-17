@@ -344,32 +344,32 @@ void zivid_camera::ZividCamera::publishFrame(Zivid::Frame&& frame)
   }
 }
 
-sensor_msgs::PointCloud2 zivid_camera::ZividCamera::makePointCloud2(const std_msgs::Header& header,
-                                                                    const Zivid::PointCloud& point_cloud)
+sensor_msgs::PointCloud2ConstPtr zivid_camera::ZividCamera::makePointCloud2(const std_msgs::Header& header,
+                                                                            const Zivid::PointCloud& point_cloud)
 {
-  sensor_msgs::PointCloud2 msg;
-  fillCommonMsgFields(msg, header, point_cloud);
-  msg.point_step = sizeof(Zivid::Point);
-  msg.row_step = msg.point_step * msg.width;
-  msg.is_dense = false;
+  auto msg = boost::make_shared<sensor_msgs::PointCloud2>();
+  fillCommonMsgFields(*msg, header, point_cloud);
+  msg->point_step = sizeof(Zivid::Point);
+  msg->row_step = msg->point_step * msg->width;
+  msg->is_dense = false;
 
-  msg.fields.reserve(5);
-  msg.fields.push_back(createPointField("x", 0, 7, 1));
-  msg.fields.push_back(createPointField("y", 4, 7, 1));
-  msg.fields.push_back(createPointField("z", 8, 7, 1));
-  msg.fields.push_back(createPointField("c", 12, 7, 1));
-  msg.fields.push_back(createPointField("rgb", 16, 7, 1));
+  msg->fields.reserve(5);
+  msg->fields.push_back(createPointField("x", 0, 7, 1));
+  msg->fields.push_back(createPointField("y", 4, 7, 1));
+  msg->fields.push_back(createPointField("z", 8, 7, 1));
+  msg->fields.push_back(createPointField("c", 12, 7, 1));
+  msg->fields.push_back(createPointField("rgb", 16, 7, 1));
 
-  msg.data =
+  msg->data =
       std::vector<uint8_t>((uint8_t*)point_cloud.dataPtr(), (uint8_t*)(point_cloud.dataPtr() + point_cloud.size()));
 
 #pragma omp parallel for
   for (std::size_t i = 0; i < point_cloud.size(); i++)
   {
-    uint8_t* point_ptr = &(msg.data[i * sizeof(Zivid::Point)]);
-    float* x_ptr = (float*)&(point_ptr[msg.fields[0].offset]);
-    float* y_ptr = (float*)&(point_ptr[msg.fields[1].offset]);
-    float* z_ptr = (float*)&(point_ptr[msg.fields[2].offset]);
+    uint8_t* point_ptr = &(msg->data[i * sizeof(Zivid::Point)]);
+    float* x_ptr = (float*)&(point_ptr[0]);
+    float* y_ptr = (float*)&(point_ptr[4]);
+    float* z_ptr = (float*)&(point_ptr[8]);
 
     // Convert from mm to m
     *x_ptr *= 0.001f;
@@ -379,89 +379,89 @@ sensor_msgs::PointCloud2 zivid_camera::ZividCamera::makePointCloud2(const std_ms
   return msg;
 }
 
-sensor_msgs::Image zivid_camera::ZividCamera::makeColorImage(const std_msgs::Header& header,
-                                                             const Zivid::PointCloud& point_cloud)
+sensor_msgs::ImageConstPtr zivid_camera::ZividCamera::makeColorImage(const std_msgs::Header& header,
+                                                                     const Zivid::PointCloud& point_cloud)
 {
-  sensor_msgs::Image img;
-  fillCommonMsgFields(img, header, point_cloud);
-  img.encoding = sensor_msgs::image_encodings::RGB8;
-  img.step = 3 * point_cloud.width();
-  img.data.resize(img.step * img.height);
+  auto img = boost::make_shared<sensor_msgs::Image>();
+  fillCommonMsgFields(*img, header, point_cloud);
+  img->encoding = sensor_msgs::image_encodings::RGB8;
+  img->step = 3 * point_cloud.width();
+  img->data.resize(img->step * img->height);
 
 #pragma omp parallel for
   for (std::size_t i = 0; i < point_cloud.size(); i++)
   {
     const auto point = point_cloud(i);
-    img.data[3 * i] = point.red();
-    img.data[3 * i + 1] = point.green();
-    img.data[3 * i + 2] = point.blue();
+    img->data[3 * i] = point.red();
+    img->data[3 * i + 1] = point.green();
+    img->data[3 * i + 2] = point.blue();
   }
   return img;
 }
 
-sensor_msgs::Image zivid_camera::ZividCamera::makeDepthImage(const std_msgs::Header& header,
-                                                             const Zivid::PointCloud& point_cloud)
+sensor_msgs::ImageConstPtr zivid_camera::ZividCamera::makeDepthImage(const std_msgs::Header& header,
+                                                                     const Zivid::PointCloud& point_cloud)
 {
-  sensor_msgs::Image img;
-  fillCommonMsgFields(img, header, point_cloud);
-  img.encoding = sensor_msgs::image_encodings::TYPE_32FC1;
-  img.step = 4 * point_cloud.width();
-  img.data.resize(img.step * img.height);
+  auto img = boost::make_shared<sensor_msgs::Image>();
+  fillCommonMsgFields(*img, header, point_cloud);
+  img->encoding = sensor_msgs::image_encodings::TYPE_32FC1;
+  img->step = 4 * point_cloud.width();
+  img->data.resize(img->step * img->height);
 
 #pragma omp parallel for
   for (std::size_t i = 0; i < point_cloud.size(); i++)
   {
-    float* image_data = reinterpret_cast<float*>(&img.data[4 * i]);
+    float* image_data = reinterpret_cast<float*>(&img->data[4 * i]);
     // Convert from mm to m
     *image_data = point_cloud(i).z * 0.001;
   }
   return img;
 }
 
-sensor_msgs::CameraInfo zivid_camera::ZividCamera::makeCameraInfo(const std_msgs::Header& header,
-                                                                  const Zivid::PointCloud& point_cloud,
-                                                                  const Zivid::CameraIntrinsics& intrinsics)
+sensor_msgs::CameraInfoConstPtr zivid_camera::ZividCamera::makeCameraInfo(const std_msgs::Header& header,
+                                                                          const Zivid::PointCloud& point_cloud,
+                                                                          const Zivid::CameraIntrinsics& intrinsics)
 {
-  sensor_msgs::CameraInfo camera_info;
-  camera_info.header = header;
-  camera_info.width = point_cloud.width();
-  camera_info.height = point_cloud.height();
-  camera_info.distortion_model = sensor_msgs::distortion_models::PLUMB_BOB;
+  auto msg = boost::make_shared<sensor_msgs::CameraInfo>();
+  msg->header = header;
+  msg->width = point_cloud.width();
+  msg->height = point_cloud.height();
+  msg->distortion_model = sensor_msgs::distortion_models::PLUMB_BOB;
 
   // k1, k2, t1, t2, k3
   const auto distortion = intrinsics.distortion();
-  camera_info.D.resize(5);
-  camera_info.D[0] = distortion.k1().value();
-  camera_info.D[1] = distortion.k2().value();
-  camera_info.D[2] = distortion.p1().value();
-  camera_info.D[3] = distortion.p2().value();
-  camera_info.D[4] = distortion.k3().value();
+  msg->D.resize(5);
+  msg->D[0] = distortion.k1().value();
+  msg->D[1] = distortion.k2().value();
+  msg->D[2] = distortion.p1().value();
+  msg->D[3] = distortion.p2().value();
+  msg->D[4] = distortion.k3().value();
 
   // Intrinsic camera matrix for the raw (distorted) images.
   //     [fx  0 cx]
   // K = [ 0 fy cy]
   //     [ 0  0  1]
   const auto camera_matrix = intrinsics.cameraMatrix();
-  camera_info.K[0] = camera_matrix.fx().value();
-  camera_info.K[2] = camera_matrix.cx().value();
-  camera_info.K[4] = camera_matrix.fy().value();
-  camera_info.K[5] = camera_matrix.cy().value();
-  camera_info.K[8] = 1;
+  msg->K[0] = camera_matrix.fx().value();
+  msg->K[2] = camera_matrix.cx().value();
+  msg->K[4] = camera_matrix.fy().value();
+  msg->K[5] = camera_matrix.cy().value();
+  msg->K[8] = 1;
 
   // R (identity)
-  camera_info.R[0] = 1;
-  camera_info.R[4] = 1;
-  camera_info.R[8] = 1;
+  msg->R[0] = 1;
+  msg->R[4] = 1;
+  msg->R[8] = 1;
 
   // Projection/camera matrix
   //     [fx'  0  cx' Tx]
   // P = [ 0  fy' cy' Ty]
   //     [ 0   0   1   0]
-  camera_info.P[0] = camera_matrix.fx().value();
-  camera_info.P[2] = camera_matrix.cx().value();
-  camera_info.P[5] = camera_matrix.fy().value();
-  camera_info.P[6] = camera_matrix.cy().value();
-  camera_info.P[10] = 1;
+  msg->P[0] = camera_matrix.fx().value();
+  msg->P[2] = camera_matrix.cx().value();
+  msg->P[5] = camera_matrix.fy().value();
+  msg->P[6] = camera_matrix.cy().value();
+  msg->P[10] = 1;
 
-  return camera_info;
+  return msg;
 }

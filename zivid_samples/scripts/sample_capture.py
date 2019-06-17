@@ -27,7 +27,7 @@ class Sample:
         frame0_config_client = dynamic_reconfigure.client.Client(
             "/zivid_camera/capture_frame/frame_0"
         )
-        frame0_config = {"enabled": True, "iris": 22, "exposure_time": 0.02}
+        frame0_config = {"enabled": True, "iris": 22, "exposure_time": 0.01}
         frame0_config_client.update_configuration(frame0_config)
 
     def capture(self):

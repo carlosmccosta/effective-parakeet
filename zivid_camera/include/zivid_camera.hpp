@@ -51,11 +51,12 @@ private:
                                    DRFrameConfig& frame_config);
   bool captureServiceHandler(zivid_camera::Capture::Request& req, zivid_camera::Capture::Response& res);
   void publishFrame(Zivid::Frame&& frame);
-  sensor_msgs::PointCloud2 makePointCloud2(const std_msgs::Header& header, const Zivid::PointCloud& point_cloud);
-  sensor_msgs::Image makeColorImage(const std_msgs::Header& header, const Zivid::PointCloud& point_cloud);
-  sensor_msgs::Image makeDepthImage(const std_msgs::Header& header, const Zivid::PointCloud& point_cloud);
-  sensor_msgs::CameraInfo makeCameraInfo(const std_msgs::Header& header, const Zivid::PointCloud& point_cloud,
-                                         const Zivid::CameraIntrinsics& intrinsics);
+  sensor_msgs::PointCloud2ConstPtr makePointCloud2(const std_msgs::Header& header,
+                                                   const Zivid::PointCloud& point_cloud);
+  sensor_msgs::ImageConstPtr makeColorImage(const std_msgs::Header& header, const Zivid::PointCloud& point_cloud);
+  sensor_msgs::ImageConstPtr makeDepthImage(const std_msgs::Header& header, const Zivid::PointCloud& point_cloud);
+  sensor_msgs::CameraInfoConstPtr makeCameraInfo(const std_msgs::Header& header, const Zivid::PointCloud& point_cloud,
+                                                 const Zivid::CameraIntrinsics& intrinsics);
 
   ros::NodeHandle nh_;
   ros::NodeHandle priv_;

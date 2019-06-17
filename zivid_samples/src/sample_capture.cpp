@@ -62,7 +62,7 @@ int main(int argc, char** argv)
 
   frame_0_cfg.enabled = true;
   frame_0_cfg.iris = 22;
-  frame_0_cfg.exposure_time = 0.02;
+  frame_0_cfg.exposure_time = 0.01;
   CHECK(frame_0_client.setConfiguration(frame_0_cfg));
 
   capture();
