@@ -123,7 +123,7 @@ point cloud and the 2D color and depth images, and [rqt_reconfigure](https://wik
 to configure the capture settings.
 
 <p align="center">
-    <img src="https://www.zivid.com/software/zivid-ros/ros_rviz_miscobjects.png" width="800" height="472">
+    <img src="https://www.zivid.com/software/zivid-ros/ros_rviz_miscobjects.png" width="850" height="502">
 </p>
 
 If everything is working, the camera will now start to capture frames repeatedly, and the output should
@@ -138,8 +138,8 @@ For sample code in C++ and Python, see the Samples section.
 
 ## Launching the driver
 
-It is required by the driver to specify a namespace when starting the driver. All the
-services, topics and configurations will be pushed into this namespace.
+It is required by the driver to specify a [namespace](http://wiki.ros.org/Nodes#Remapping_Arguments.A.22Pushing_Down.22)
+when starting the driver. All the services, topics and configurations will be pushed into this namespace.
 
 ### As a node
 

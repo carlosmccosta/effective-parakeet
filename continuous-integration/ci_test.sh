@@ -7,7 +7,7 @@ $SCRIPT_DIR/setup.sh || exit $?
 
 UBUNTU_VERSION="$(lsb_release -rs)" || exit $?
 if [[ "$UBUNTU_VERSION" != "16.04" ]]; then
-    ./lint.sh || exit $?
+    $SCRIPT_DIR/lint.sh || exit $?
 fi
 
 $SCRIPT_DIR/build.sh || exit $?

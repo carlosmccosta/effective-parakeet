@@ -51,10 +51,10 @@ function install_www_deb {
 if [[ "$UBUNTU_VERSION" == "16.04" ]]; then
 
     echo "Installing gcc-8"
-    apt-yes install software-properties-common
-    add-apt-repository -y ppa:ubuntu-toolchain-r/test
-    apt-yes update
-    apt-yes install g++-8
+    apt-yes install software-properties-common || exit $?
+    add-apt-repository -y ppa:ubuntu-toolchain-r/test || exit $?
+    apt-yes update || exit $?
+    apt-yes install g++-8 || exit $?
 
     install_www_deb https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/u16/telicam-sdk_2.0.0.1-1_amd64.deb || exit $?
     install_www_deb https://www.zivid.com/hubfs/softwarefiles/releases/1.3.0+bb9ee328-10/u16/zivid_1.3.0+bb9ee328-10_amd64.deb || exit $?

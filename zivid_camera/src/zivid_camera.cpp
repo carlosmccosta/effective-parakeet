@@ -299,7 +299,7 @@ bool zivid_camera::ZividCamera::captureServiceHandler(zivid_camera::Capture::Req
   }
   else
   {
-    ROS_ERROR("Capture called with 0 enabled frames!");
+    throw std::runtime_error("Capture called with 0 enabled frames!");
   }
   return false;
 }
