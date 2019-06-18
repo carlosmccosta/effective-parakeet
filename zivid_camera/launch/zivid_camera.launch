@@ -1,0 +1,44 @@
+<launch>
+    <arg name="camera_namespace" default="zivid_camera"/>
+
+    <group ns="$(arg camera_namespace)">
+        <node name="zivid_camera" pkg="zivid_camera" type="zivid_camera_node" output="screen">
+            <param name="serial_number" type="str" value=""/>
+            <param name="frame_id" type="str" value="zivid_optical_frame"/>
+            <param name="num_capture_frames" type="int" value="2"/>
+            <param name="use_latched_topics" type="bool" value="true"/>
+            <param name="file_camera_path" type="str" value=""/>
+        </node>
+
+        <node name="$(anon dynparam_settings)" pkg="dynamic_reconfigure" type="dynparam" args="set_from_parameters capture_general">
+            <param name="blue_balance" type="double" value="1.61"/>
+            <param name="red_balance" type="double" value="2.16"/>
+            <param name="filters_contrast_enabled" type="bool" value="false"/>
+            <param name="filters_contrast_threshold" type="double" value="5.0"/>
+            <param name="filters_gaussian_enabled" type="bool" value="false"/>
+            <param name="filters_gaussian_sigma" type="double" value="1.5"/>
+            <param name="filters_outlier_enabled" type="bool" value="true"/>
+            <param name="filters_outlier_threshold" type="double" value="10.0"/>
+            <param name="filters_reflection_enabled" type="bool" value="false"/>
+            <param name="filters_saturated_enabled" type="bool" value="true"/>
+        </node>
+
+        <node name="$(anon dynparam_f0)" pkg="dynamic_reconfigure" type="dynparam" args="set_from_parameters capture_frame/frame_0">
+            <param name="enabled" type="bool" value="true"/>
+            <param name="exposure_time" type="double" value="0.040"/>
+            <param name="iris" type="int" value="7"/>
+            <param name="bidirectional" type="bool" value="true"/>
+            <param name="brightness" type="double" value="1.0"/>
+            <param name="gain" type="double" value="1.0"/>
+        </node>
+
+        <node name="$(anon dynparam_f1)" pkg="dynamic_reconfigure" type="dynparam" args="set_from_parameters capture_frame/frame_1">
+            <param name="enabled" type="bool" value="true"/>
+            <param name="exposure_time" type="double" value="0.040"/>
+            <param name="iris" type="int" value="22"/>
+            <param name="bidirectional" type="bool" value="true"/>
+            <param name="brightness" type="double" value="1.0"/>
+            <param name="gain" type="double" value="1.0"/>
+        </node>
+    </group>
+</launch>
