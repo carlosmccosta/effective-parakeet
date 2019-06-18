@@ -109,61 +109,71 @@ that the camera is discovered by your PC. You can also open Zivid Studio and con
 Close Zivid Studio before continuing with the rest of this guide. If the camera is not found, visit
 our [troubleshooting wiki](https://help.zivid.com).
 
-First, start `roscore`.
-
-```
-cd ~/catkin_ws && source devel/setup.bash
-roscore
-```
-
-In a new terminal window start the `zivid_camera` node.
-
-```
-cd ~/catkin_ws && source devel/setup.bash
-ROS_NAMESPACE=zivid_camera rosrun zivid_camera zivid_camera_node
-```
-
-Check the output from the node to confirm that it finds and connects
-to the camera. Look for a log line containing "Zivid camera node is now ready!".
-
-In a new terminal window start the `zivid_samples_capture` node.
-
-```
-cd ~/catkin_ws && source devel/setup.bash
-rosrun zivid_samples zivid_samples_capture
-```
-
-The `zivid_samples_capture` node will first configure the capture settings of the camera and then
-capture repeatedly. You can visualize the point cloud, color image and depth image using
-[rviz](https://wiki.ros.org/rviz).
-
-```
-cd ~/catkin_ws && source devel/setup.bash
-roslaunch zivid_camera visualize.launch
-```
-
-You can adjust the capture settings using [rqt_reconfigure](https://wiki.ros.org/rqt_reconfigure).
-
-```
-cd ~/catkin_ws && source devel/setup.bash
-rosrun rqt_reconfigure rqt_reconfigure
-```
-
-Try to adjust the exposure time or the iris and observe that the images and point cloud in
-[rviz](https://wiki.ros.org/rviz) changes.
-
-You can also use the launch script `sample_capture.launch` which does all of these
-steps for you, including starting [rviz](https://wiki.ros.org/rviz) and
-[rqt_reconfigure](https://wiki.ros.org/rqt_reconfigure).
+Run the sample_capture.launch script via [roslaunch](https://wiki.ros.org/roslaunch) to test that
+everything is working:
 
 ```
 cd ~/catkin_ws && source devel/setup.bash
 roslaunch zivid_samples sample_capture.launch
 ```
 
+The `zivid_samples_capture` node will first configure the capture settings of the camera and then
+capture repeatedly. The launch script also starts [rviz](https://wiki.ros.org/rviz) to visualize the
+point cloud and the 2D color and depth images, and [rqt_reconfigure](https://wiki.ros.org/rqt_reconfigure)
+to configure the capture settings.
+
+<p align="center">
+    <img src="https://www.zivid.com/software/zivid-ros/ros_rviz_miscobjects.png" width="800" height="472">
+</p>
+
+If everything is working, the camera will now start to capture frames repeatedly, and the output should
+be visible in [rviz](https://wiki.ros.org/rviz). Try to adjust the exposure time or the iris in
+[rqt_reconfigure](https://wiki.ros.org/rqt_reconfigure) and observe that the visualization in
+[rviz](https://wiki.ros.org/rviz) changes. Note: sometimes it is necessary to click "Refresh" in
+[rqt_reconfigure](https://wiki.ros.org/rqt_reconfigure) to load the configuration tree.
+
 A more detailed description of the `zivid_camera` node follows below.
 
 For sample code in C++ and Python, see the Samples section.
+
+## Launching the driver
+
+It is required by the driver to specify a namespace when starting the driver. All the
+services, topics and configurations will be pushed into this namespace.
+
+### As a node
+
+```
+ROS_NAMESPACE=zivid_camera rosrun zivid_camera zivid_camera_node
+```
+
+### As a nodelet
+
+```
+ROS_NAMESPACE=zivid_camera rosrun nodelet nodelet standalone zivid_camera/nodelet
+```
+
+## Launch Parameters
+
+The following parameters can be specified when starting the driver.
+
+`file_camera_path` (string, default: "")
+> Specify the path to a file camera to use instead of a real Zivid camera. This can be used to
+> develop without access to hardware. The file camera returns the same point cloud for every capture.
+> [Click here to download a file camera.](https://www.zivid.com/software/ZividSampleData.zip)
+
+`frame_id` (string, default: "zivid_optical_frame")
+> Specify the frame_id used for all published images and point clouds.
+
+`num_capture_frames` (int, default: 10)
+> Specify the number of dynamic_reconfigure capture_frame nodes that are created during startup of
+> the node. This number defines the maximum number of frames in a capture. If you need to perform
+> HDR with more than 10 frames then increase this number.
+
+`serial_number` (string, default: "")
+> Specify the serial number of the Zivid camera to use. Important: When passing this value via
+> the command line or rosparam the serial number must be prefixed with a colon (`:012345`).
+> This parameter is optional. By default the driver will connect to the first available camera.
 
 ## Services
 
@@ -180,6 +190,7 @@ For sample code in C++ and Python, see the Samples section.
 > Returns the camera's serial number.
 
 ## Published Topics
+
 `color/camera_info` ([sensor_msgs/CameraInfo](http://docs.ros.org/api/sensor_msgs/html/msg/CameraInfo.html))
 > Camera calibration and metadata.
 
@@ -280,28 +291,6 @@ In order to capture a point cloud at least one frame needs to be enabled.
 | `capture_general/filters_saturated_enabled`   | bool   | [Zivid::Settings::Filters::Saturated::Enabled](https://www.zivid.com/software/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1Filters_1_1Saturated_1_1Enabled.html)
 | `capture_general/red_balance`                 | double | [Zivid::Settings::RedBalance](https://www.zivid.com/software/releases/1.3.0+bb9ee328-10/doc/cpp/classZivid_1_1Settings_1_1RedBalance.html)
 
-## Launch Parameters
-
-The following parameters can be specified when starting the `zivid_camera` node.
-
-`file_camera_path` (string, default: "")
-> Specify the path to a file camera to use instead of a real Zivid camera. This can be used to
-> develop without access to hardware. The file camera returns the same point cloud for every capture.
-> [Click here to download a file camera.](https://www.zivid.com/software/ZividSampleData.zip)
-
-`frame_id` (string, default: "zivid_optical_frame")
-> Specify the frame_id used for all published images and point clouds.
-
-`num_capture_frames` (int, default: 10)
-> Specify the number of dynamic_reconfigure capture_frame nodes that are created during startup of
-> the node. This number defines the maximum number of frames in a capture. If you need to perform
-> HDR with more than 10 frames then increase this number.
-
-`serial_number` (string, default: "")
-> Specify the serial number of the Zivid camera to use. Important: When passing this value via
-> the command line or rosparam the serial number must be prefixed with a colon (`:012345`).
-> This parameter is optional. By default the driver will connect to the first available camera.
-
 ## Samples
 
 In the zivid_samples package we have added an example node in C++ and Python that demonstrate
@@ -326,12 +315,6 @@ rosrun zivid_samples sample_capture.py
 ```
 
 ## Frequently Asked Questions
-
-### How to run zivid_camera as a nodelet
-
-```
-ROS_NAMESPACE=zivid_camera rosrun nodelet nodelet standalone zivid_camera/nodelet
-```
 
 ### How to use multiple cameras
 
