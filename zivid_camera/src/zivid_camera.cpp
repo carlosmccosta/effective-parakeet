@@ -168,9 +168,10 @@ zivid_camera::ZividCamera::ZividCamera(ros::NodeHandle& nh, ros::NodeHandle& pri
   }
 
   ROS_INFO("Advertising topics");
-  point_cloud_publisher_ = nh_.advertise<sensor_msgs::PointCloud2>("depth/points", 1);
-  color_image_publisher_ = image_transport_.advertiseCamera("color/image_color", 1);
-  depth_image_publisher_ = image_transport_.advertiseCamera("depth/image_raw", 1);
+  priv_.param<decltype(use_latched_topics_)>("use_latched_topics", use_latched_topics_, false);
+  point_cloud_publisher_ = nh_.advertise<sensor_msgs::PointCloud2>("depth/points", 1, use_latched_topics_);
+  color_image_publisher_ = image_transport_.advertiseCamera("color/image_color", 1, use_latched_topics_);
+  depth_image_publisher_ = image_transport_.advertiseCamera("depth/image_raw", 1, use_latched_topics_);
 
   ROS_INFO("Advertising services");
 
@@ -310,7 +311,7 @@ void zivid_camera::ZividCamera::publishFrame(Zivid::Frame&& frame)
   const bool has_color_img_subs = color_image_publisher_.getNumSubscribers() > 0;
   const bool has_depth_img_subs = depth_image_publisher_.getNumSubscribers() > 0;
 
-  if (has_point_cloud_subs || has_color_img_subs || has_depth_img_subs)
+  if (has_point_cloud_subs || has_color_img_subs || has_depth_img_subs || use_latched_topics_)
   {
     auto point_cloud = frame.getPointCloud();
 
@@ -319,23 +320,23 @@ void zivid_camera::ZividCamera::publishFrame(Zivid::Frame&& frame)
     header.stamp = ros::Time::now();
     header.frame_id = frame_id_;
 
-    if (has_point_cloud_subs)
+    if (has_point_cloud_subs || use_latched_topics_)
     {
       ROS_INFO("Publishing point cloud");
       point_cloud_publisher_.publish(makePointCloud2(header, point_cloud));
     }
 
-    if (has_color_img_subs || has_depth_img_subs)
+    if (has_color_img_subs || has_depth_img_subs || use_latched_topics_)
     {
       auto camera_info = makeCameraInfo(header, point_cloud, camera_.intrinsics());
 
-      if (has_color_img_subs)
+      if (has_color_img_subs || use_latched_topics_)
       {
         ROS_INFO("Publishing color image");
         color_image_publisher_.publish(makeColorImage(header, point_cloud), camera_info);
       }
 
-      if (has_depth_img_subs)
+      if (has_depth_img_subs || use_latched_topics_)
       {
         ROS_INFO("Publishing depth image");
         depth_image_publisher_.publish(makeDepthImage(header, point_cloud), camera_info);
