@@ -168,10 +168,12 @@ zivid_camera::ZividCamera::ZividCamera(ros::NodeHandle& nh, ros::NodeHandle& pri
   }
 
   ROS_INFO("Advertising topics");
-  priv_.param<decltype(use_latched_topics_)>("use_latched_topics", use_latched_topics_, false);
-  point_cloud_publisher_ = nh_.advertise<sensor_msgs::PointCloud2>("depth/points", 1, use_latched_topics_);
-  color_image_publisher_ = image_transport_.advertiseCamera("color/image_color", 1, use_latched_topics_);
-  depth_image_publisher_ = image_transport_.advertiseCamera("depth/image_raw", 1, use_latched_topics_);
+  priv_.param<decltype(use_latched_publisher_for_point_cloud_)>("use_latched_publisher_for_point_cloud", use_latched_publisher_for_point_cloud_, false);
+  priv_.param<decltype(use_latched_publisher_for_color_image_)>("use_latched_publisher_for_color_image", use_latched_publisher_for_color_image_, false);
+  priv_.param<decltype(use_latched_publisher_for_depth_image_)>("use_latched_publisher_for_depth_image", use_latched_publisher_for_depth_image_, false);
+  point_cloud_publisher_ = nh_.advertise<sensor_msgs::PointCloud2>("depth/points", 1, use_latched_publisher_for_point_cloud_);
+  color_image_publisher_ = image_transport_.advertiseCamera("color/image_color", 1, use_latched_publisher_for_color_image_);
+  depth_image_publisher_ = image_transport_.advertiseCamera("depth/image_raw", 1, use_latched_publisher_for_depth_image_);
 
   ROS_INFO("Advertising services");
 
@@ -256,51 +258,62 @@ bool zivid_camera::ZividCamera::captureServiceHandler(zivid_camera::Capture::Req
 {
   ROS_DEBUG("%s", __func__);
 
-  std::vector<Zivid::Settings> settings;
+  const bool has_point_cloud_subs = point_cloud_publisher_.getNumSubscribers() > 0;
+  const bool has_color_img_subs = color_image_publisher_.getNumSubscribers() > 0;
+  const bool has_depth_img_subs = depth_image_publisher_.getNumSubscribers() > 0;
 
-  Zivid::Settings base_setting = camera_.settings();
-  applyCaptureGeneralConfigToZividSettings(current_capture_general_config_, base_setting);
+  if (has_point_cloud_subs || has_color_img_subs || has_depth_img_subs || use_latched_publisher_for_point_cloud_ || use_latched_publisher_for_color_image_ || use_latched_publisher_for_depth_image_) {
+    std::vector<Zivid::Settings> settings;
 
-  for (const auto& frame_config : frame_configs_)
-  {
-    if (frame_config->config.enabled)
+    Zivid::Settings base_setting = camera_.settings();
+    applyCaptureGeneralConfigToZividSettings(current_capture_general_config_, base_setting);
+
+    for (const auto& frame_config : frame_configs_)
     {
-      ROS_DEBUG("Config %s is enabled", frame_config->name.c_str());
-      Zivid::Settings s{ base_setting };
-      applyCaptureFrameConfigToZividSettings(frame_config->config, s);
-      settings.push_back(s);
-    }
-  }
-
-  if (settings.size() > 0)
-  {
-    ROS_INFO("Capturing with %zd frames", settings.size());
-    std::vector<Zivid::Frame> frames;
-    frames.reserve(settings.size());
-    for (const auto& s : settings)
-    {
-      camera_.setSettings(s);
-      ROS_DEBUG("Calling capture() with settings: %s", camera_.settings().toString().c_str());
-      frames.emplace_back(camera_.capture());
+      if (frame_config->config.enabled)
+      {
+        ROS_DEBUG("Config %s is enabled", frame_config->name.c_str());
+        Zivid::Settings s{ base_setting };
+        applyCaptureFrameConfigToZividSettings(frame_config->config, s);
+        settings.push_back(s);
+      }
     }
 
-    auto frame = [&]() {
-      if (frames.size() > 1)
+    if (settings.size() > 0)
+    {
+      ROS_INFO("Capturing with %zd frames", settings.size());
+      std::vector<Zivid::Frame> frames;
+      frames.reserve(settings.size());
+      for (const auto& s : settings)
       {
-        ROS_DEBUG("Calling Zivid::HDR::combineFrames with %zd frames", frames.size());
-        return Zivid::HDR::combineFrames(begin(frames), end(frames));
+        camera_.setSettings(s);
+        ROS_DEBUG("Calling capture() with settings: %s", camera_.settings().toString().c_str());
+        frames.emplace_back(camera_.capture());
       }
-      else
-      {
-        return frames[0];
-      }
-    }();
-    publishFrame(std::move(frame));
-    return true;
+
+      auto frame = [&]() {
+        if (frames.size() > 1)
+        {
+          ROS_DEBUG("Calling Zivid::HDR::combineFrames with %zd frames", frames.size());
+          return Zivid::HDR::combineFrames(begin(frames), end(frames));
+        }
+        else
+        {
+          return frames[0];
+        }
+      }();
+      publishFrame(std::move(frame));
+      return true;
+    }
+    else
+    {
+      throw std::runtime_error("Capture called with 0 enabled frames!");
+    }
   }
   else
   {
-    throw std::runtime_error("Capture called with 0 enabled frames!");
+    ROS_INFO("Avoiding capture because there are no subscribers and the latched option was not specified");
+    return true;
   }
   return false;
 }
@@ -311,36 +324,33 @@ void zivid_camera::ZividCamera::publishFrame(Zivid::Frame&& frame)
   const bool has_color_img_subs = color_image_publisher_.getNumSubscribers() > 0;
   const bool has_depth_img_subs = depth_image_publisher_.getNumSubscribers() > 0;
 
-  if (has_point_cloud_subs || has_color_img_subs || has_depth_img_subs || use_latched_topics_)
+  auto point_cloud = frame.getPointCloud();
+
+  std_msgs::Header header;
+  header.seq = header_seq_++;
+  header.stamp = ros::Time::now();
+  header.frame_id = frame_id_;
+
+  if (has_point_cloud_subs || use_latched_publisher_for_point_cloud_)
   {
-    auto point_cloud = frame.getPointCloud();
+    ROS_INFO("Publishing point cloud");
+    point_cloud_publisher_.publish(makePointCloud2(header, point_cloud));
+  }
 
-    std_msgs::Header header;
-    header.seq = header_seq_++;
-    header.stamp = ros::Time::now();
-    header.frame_id = frame_id_;
+  if (has_color_img_subs || has_depth_img_subs || use_latched_publisher_for_color_image_ || use_latched_publisher_for_depth_image_)
+  {
+    auto camera_info = makeCameraInfo(header, point_cloud, camera_.intrinsics());
 
-    if (has_point_cloud_subs || use_latched_topics_)
+    if (has_color_img_subs || use_latched_publisher_for_color_image_)
     {
-      ROS_INFO("Publishing point cloud");
-      point_cloud_publisher_.publish(makePointCloud2(header, point_cloud));
+      ROS_INFO("Publishing color image");
+      color_image_publisher_.publish(makeColorImage(header, point_cloud), camera_info);
     }
 
-    if (has_color_img_subs || has_depth_img_subs || use_latched_topics_)
+    if (has_depth_img_subs || use_latched_publisher_for_depth_image_)
     {
-      auto camera_info = makeCameraInfo(header, point_cloud, camera_.intrinsics());
-
-      if (has_color_img_subs || use_latched_topics_)
-      {
-        ROS_INFO("Publishing color image");
-        color_image_publisher_.publish(makeColorImage(header, point_cloud), camera_info);
-      }
-
-      if (has_depth_img_subs || use_latched_topics_)
-      {
-        ROS_INFO("Publishing depth image");
-        depth_image_publisher_.publish(makeDepthImage(header, point_cloud), camera_info);
-      }
+      ROS_INFO("Publishing depth image");
+      depth_image_publisher_.publish(makeDepthImage(header, point_cloud), camera_info);
     }
   }
 }

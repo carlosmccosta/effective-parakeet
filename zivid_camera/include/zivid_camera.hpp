@@ -63,7 +63,9 @@ private:
   boost::recursive_mutex capture_general_dr_server_mutex_;
   std::unique_ptr<dynamic_reconfigure::Server<zivid_camera::CaptureGeneralConfig>> capture_general_dr_server_;
   zivid_camera::CaptureGeneralConfig current_capture_general_config_;
-  bool use_latched_topics_;
+  bool use_latched_publisher_for_point_cloud_;
+  bool use_latched_publisher_for_color_image_;
+  bool use_latched_publisher_for_depth_image_;
   ros::Publisher point_cloud_publisher_;
   image_transport::ImageTransport image_transport_;
   image_transport::CameraPublisher color_image_publisher_;
