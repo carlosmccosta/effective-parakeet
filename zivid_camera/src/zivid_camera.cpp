@@ -171,6 +171,7 @@ zivid_camera::ZividCamera::ZividCamera(ros::NodeHandle& nh, ros::NodeHandle& pri
   priv_.param<decltype(use_latched_publisher_for_point_cloud_)>("use_latched_publisher_for_point_cloud", use_latched_publisher_for_point_cloud_, false);
   priv_.param<decltype(use_latched_publisher_for_color_image_)>("use_latched_publisher_for_color_image", use_latched_publisher_for_color_image_, false);
   priv_.param<decltype(use_latched_publisher_for_depth_image_)>("use_latched_publisher_for_depth_image", use_latched_publisher_for_depth_image_, false);
+  priv_.param<decltype(publish_point_cloud_with_only_valid_points_)>("publish_point_cloud_with_only_valid_points", publish_point_cloud_with_only_valid_points_, false);
   point_cloud_publisher_ = nh_.advertise<sensor_msgs::PointCloud2>("depth/points", 1, use_latched_publisher_for_point_cloud_);
   color_image_publisher_ = image_transport_.advertiseCamera("color/image_color", 1, use_latched_publisher_for_color_image_);
   depth_image_publisher_ = image_transport_.advertiseCamera("depth/image_raw", 1, use_latched_publisher_for_depth_image_);
@@ -333,8 +334,9 @@ void zivid_camera::ZividCamera::publishFrame(Zivid::Frame&& frame)
 
   if (has_point_cloud_subs || use_latched_publisher_for_point_cloud_)
   {
-    ROS_INFO("Publishing point cloud");
-    point_cloud_publisher_.publish(makePointCloud2(header, point_cloud));
+    sensor_msgs::PointCloud2ConstPtr point_cloud_msg = makePointCloud2(header, point_cloud);
+    ROS_INFO_STREAM("Publishing point cloud with " << (point_cloud_msg->width * point_cloud_msg->height) << " points");
+    point_cloud_publisher_.publish(point_cloud_msg);
   }
 
   if (has_color_img_subs || has_depth_img_subs || use_latched_publisher_for_color_image_ || use_latched_publisher_for_depth_image_)
@@ -360,33 +362,42 @@ sensor_msgs::PointCloud2ConstPtr zivid_camera::ZividCamera::makePointCloud2(cons
 {
   auto msg = boost::make_shared<sensor_msgs::PointCloud2>();
   fillCommonMsgFields(*msg, header, point_cloud);
-  msg->point_step = sizeof(Zivid::Point);
-  msg->row_step = msg->point_step * msg->width;
-  msg->is_dense = false;
-
-  msg->fields.reserve(5);
+  unsigned int number_of_point_fields = 5;
+  msg->point_step = number_of_point_fields * sizeof(float);
+  msg->is_dense = publish_point_cloud_with_only_valid_points_;
+  msg->fields.reserve(number_of_point_fields);
   msg->fields.push_back(createPointField("x", 0, 7, 1));
   msg->fields.push_back(createPointField("y", 4, 7, 1));
   msg->fields.push_back(createPointField("z", 8, 7, 1));
   msg->fields.push_back(createPointField("c", 12, 7, 1));
   msg->fields.push_back(createPointField("rgb", 16, 7, 1));
+  msg->data.resize(point_cloud.size() * msg->point_step);
 
-  msg->data =
-      std::vector<uint8_t>((uint8_t*)point_cloud.dataPtr(), (uint8_t*)(point_cloud.dataPtr() + point_cloud.size()));
-
-#pragma omp parallel for
-  for (std::size_t i = 0; i < point_cloud.size(); i++)
+  unsigned int number_of_added_points = 0;
+  float* float_pointer = (float*)msg->data.data();
+  for (std::size_t i = 0; i < point_cloud.size(); ++i)
   {
-    uint8_t* point_ptr = &(msg->data[i * sizeof(Zivid::Point)]);
-    float* x_ptr = (float*)&(point_ptr[0]);
-    float* y_ptr = (float*)&(point_ptr[4]);
-    float* z_ptr = (float*)&(point_ptr[8]);
-
-    // Convert from mm to m
-    *x_ptr *= 0.001f;
-    *y_ptr *= 0.001f;
-    *z_ptr *= 0.001f;
+    const Zivid::Point& point = point_cloud(i);
+    if (!publish_point_cloud_with_only_valid_points_ || (publish_point_cloud_with_only_valid_points_ && !point.isNaN()))
+    {
+      *(float_pointer++) = point.x * 0.001f; // mm to m
+      *(float_pointer++) = point.y * 0.001f; // mm to m
+      *(float_pointer++) = point.z * 0.001f; // mm to m
+      *(float_pointer++) = point.contrast;
+      *((uint32_t*)float_pointer++) = point.rgba;
+      ++number_of_added_points;
+    }
   }
+
+  if (publish_point_cloud_with_only_valid_points_)
+  {
+    msg->width = number_of_added_points;
+    msg->height = 1;
+    msg->data.resize(msg->point_step * number_of_added_points);
+  }
+
+  msg->row_step = msg->point_step * msg->width;
+
   return msg;
 }
 

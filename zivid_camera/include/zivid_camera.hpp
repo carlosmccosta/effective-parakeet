@@ -66,6 +66,7 @@ private:
   bool use_latched_publisher_for_point_cloud_;
   bool use_latched_publisher_for_color_image_;
   bool use_latched_publisher_for_depth_image_;
+  bool publish_point_cloud_with_only_valid_points_;
   ros::Publisher point_cloud_publisher_;
   image_transport::ImageTransport image_transport_;
   image_transport::CameraPublisher color_image_publisher_;

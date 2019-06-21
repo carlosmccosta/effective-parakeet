@@ -6,9 +6,10 @@
             <param name="serial_number" type="str" value=""/>
             <param name="frame_id" type="str" value="zivid_optical_frame"/>
             <param name="num_capture_frames" type="int" value="2"/>
-            <param name="use_latched_publisher_for_point_cloud" type="bool" value="false"/>
+            <param name="use_latched_publisher_for_point_cloud" type="bool" value="true"/>
             <param name="use_latched_publisher_for_color_image" type="bool" value="false"/>
             <param name="use_latched_publisher_for_depth_image" type="bool" value="false"/>
+            <param name="publish_point_cloud_with_only_valid_points" type="bool" value="true"/>
             <param name="file_camera_path" type="str" value=""/>
             <remap from="depth/points" to="/camera/depth_registered/points"/>
         </node>
